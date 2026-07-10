@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { supabase } from './lib/storage-shim.js';
 import {
   LayoutDashboard, Calendar as CalendarIcon, Users, User, Settings as SettingsIcon, Plus, X,
   ChevronLeft, ChevronRight, Clock, Euro, TrendingUp, TrendingDown, Trash2, Pencil,
@@ -175,7 +176,7 @@ const emptyForm = {
 
 async function loadReservations() {
   try { const r = await window.storage.get(RES_KEY); return JSON.parse(r.value); }
-  catch (e) { const seed = seedReservations(); try { await window.storage.set(RES_KEY, JSON.stringify(seed)); } catch (_) {} return seed; }
+  catch (e) { return []; }
 }
 async function persistReservations(list) { try { await window.storage.set(RES_KEY, JSON.stringify(list)); } catch (e) { console.error(e); } }
 async function loadSettings() {
@@ -1031,20 +1032,34 @@ function AuthScreen({ onAuth }) {
   const [form, setForm] = useState({ nom: '', email: '', password: '', confirm: '' });
   const [error, setError] = useState('');
   const [sentReset, setSentReset] = useState(false);
+  const [loading, setLoading] = useState(false);
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
   const C = PALETTES.light;
   const inputStyle = { border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '10px 12px 10px 38px', fontSize: 14.5, fontFamily: 'Inter, sans-serif', color: C.ink, background: '#fff', width: '100%' };
   const wrapField = (icon, input) => <div style={{ position: 'relative' }}>{icon}{input}</div>;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (mode === 'signup') {
       if (!form.nom || !form.email || !form.password) { setError('Merci de remplir tous les champs.'); return; }
       if (form.password !== form.confirm) { setError('Les mots de passe ne correspondent pas.'); return; }
+      setError(''); setLoading(true);
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: form.email, password: form.password, options: { data: { nom: form.nom } }
+      });
+      setLoading(false);
+      if (signUpError) { setError(signUpError.message); return; }
+      setError('Compte créé ! Vérifie tes e-mails pour confirmer ton adresse, puis connecte-toi.');
+      setMode('login');
+      return;
     } else if (mode === 'login') {
       if (!form.email || !form.password) { setError('Merci de renseigner ton e-mail et ton mot de passe.'); return; }
+      setError(''); setLoading(true);
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
+      setLoading(false);
+      if (signInError) { setError(signInError.message); return; }
+      onAuth();
+      return;
     }
-    setError('');
-    onAuth();
   };
 
   return (
@@ -1075,7 +1090,7 @@ function AuthScreen({ onAuth }) {
                   <div style={{ fontSize: 13, color: C.inkSoft }}>Indique ton e-mail, on t'enverra un lien de réinitialisation.</div>
                 </div>
                 {wrapField(<Mail size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input placeholder="E-mail" style={inputStyle} value={form.email} onChange={set('email')} />)}
-                <button onClick={() => setSentReset(true)} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Envoyer le lien</button>
+                <button onClick={async () => { await supabase.auth.resetPasswordForEmail(form.email); setSentReset(true); }} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Envoyer le lien</button>
                 <button onClick={() => setMode('login')} style={{ background: 'none', border: 'none', color: C.inkSoft, fontSize: 13, cursor: 'pointer' }}>← Retour à la connexion</button>
               </div>
             )
@@ -1094,8 +1109,8 @@ function AuthScreen({ onAuth }) {
 
               {error && <div style={{ fontSize: 12.5, color: ACCENTS.red, background: ACCENTS.red + '12', borderRadius: 8, padding: '9px 11px' }}>{error}</div>}
 
-              <button onClick={handleSubmit} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 4 }}>
-                {mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
+              <button onClick={handleSubmit} disabled={loading} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 14, fontWeight: 600, cursor: loading ? 'default' : 'pointer', marginTop: 4, opacity: loading ? 0.7 : 1 }}>
+                {loading ? 'Un instant...' : (mode === 'login' ? 'Se connecter' : 'Créer mon compte')}
               </button>
             </div>
           )}
@@ -1111,8 +1126,20 @@ function AuthScreen({ onAuth }) {
    ================================================================================== */
 export default function App() {
   const [authed, setAuthed] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [tab, setTab] = useState('dashboard');
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthed(!!session);
+      setAuthChecked(true);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthed(!!session);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
   const [reservations, setReservations] = useState([]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
@@ -1151,6 +1178,7 @@ export default function App() {
     { id: 'stats', label: 'Statistiques', icon: BarChart3 },
   ];
 
+  if (!authChecked) return null;
   if (!authed) return <AuthScreen onAuth={() => setAuthed(true)} />;
 
   const allTabLabel = tab === 'parametres' ? 'Paramètres' : (navItems.find(n => n.id === tab)?.label || 'SkiPro');
@@ -1214,7 +1242,7 @@ export default function App() {
         <button className="nav-btn" onClick={() => setTab('parametres')} style={{ marginTop: 'auto', borderRadius: 9, border: 'none', cursor: 'pointer', textAlign: 'left', background: tab === 'parametres' ? 'rgba(255,255,255,0.1)' : 'transparent', color: tab === 'parametres' ? '#fff' : 'rgba(255,255,255,0.68)' }}>
           <SettingsIcon size={16} /> Paramètres
         </button>
-        <button className="nav-btn" onClick={() => setAuthed(false)} style={{ borderRadius: 9, border: 'none', cursor: 'pointer', textAlign: 'left', background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>
+        <button className="nav-btn" onClick={() => supabase.auth.signOut()} style={{ borderRadius: 9, border: 'none', cursor: 'pointer', textAlign: 'left', background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>
           <LogOut size={16} /> Déconnexion
         </button>
       </aside>
