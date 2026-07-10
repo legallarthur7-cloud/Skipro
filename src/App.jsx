@@ -910,7 +910,25 @@ function StatsView({ reservations, C, devise }) {
 function ParametresView({ settings, onSave, C }) {
   const [form, setForm] = useState(settings);
   const [saved, setSaved] = useState(false);
+  const [subLoading, setSubLoading] = useState(false);
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleSubscribe = async () => {
+    setSubLoading(true);
+    try {
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else { alert('Erreur : ' + (data.error || 'inconnue')); setSubLoading(false); }
+    } catch (e) {
+      alert('Erreur de connexion à Stripe.');
+      setSubLoading(false);
+    }
+  };
   const toggleJour = (j) => setForm(f => ({ ...f, joursRepos: f.joursRepos.includes(j) ? f.joursRepos.filter(x => x !== j) : [...f.joursRepos, j] }));
   const inputStyle = { border: `1px solid ${C.iceLine}`, borderRadius: 8, padding: '9px 11px', fontSize: 14, background: C.card, color: C.ink, width: '100%' };
   const section = (title, content) => (
@@ -927,6 +945,18 @@ function ParametresView({ settings, onSave, C }) {
         <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>Paramètres</h1>
         <p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4 }}>Personnalisez votre compte et vos tarifs</p>
       </div>
+
+      {section('Abonnement', (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: C.navy }}>SkiPro — 29€/mois</div>
+            <div style={{ fontSize: 13, color: C.inkSoft, marginTop: 2 }}>Toutes les fonctionnalités incluses. Résiliable à tout moment.</div>
+          </div>
+          <button onClick={handleSubscribe} disabled={subLoading} style={{ background: '#2E6F8E', color: '#fff', border: 'none', borderRadius: 9, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: subLoading ? 'default' : 'pointer', opacity: subLoading ? 0.7 : 1 }}>
+            {subLoading ? 'Un instant...' : "S'abonner"}
+          </button>
+        </div>
+      ))}
 
       {section('Coordonnées', (
         <div className="form-grid-2">
