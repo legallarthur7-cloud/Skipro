@@ -1087,6 +1087,7 @@ function ParametresView({ settings, onSave, C, subscribed }) {
         <button onClick={() => { onSave(form); setSaved(true); setTimeout(() => setSaved(false), 2000); }} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Enregistrer</button>
         {saved && <span style={{ fontSize: 13.5, color: ACCENTS.green, fontWeight: 600 }}>Paramètres enregistrés ✓</span>}
       </div>
+      </BlurGate>
     </div>
   );
 }
@@ -1184,7 +1185,6 @@ function AuthScreen({ onAuth }) {
         </div>
         <p style={{ textAlign: 'center', fontSize: 11.5, color: C.inkSoft, marginTop: 16 }}>Version prototype — l'authentification n'est pas encore reliée à une vraie base de données.</p>
       </div>
-      </BlurGate>
     </div>
   );
 }
