@@ -251,6 +251,24 @@ function KpiCard({ label, value, sub, icon: Icon, accent, C }) {
   );
 }
 
+function BlurGate({ subscribed, C, children }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      {!subscribed && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', border: `1px solid ${C.iceLine}`, borderRadius: 14, padding: '20px 26px', boxShadow: '0 12px 30px -10px rgba(0,0,0,0.2)', textAlign: 'center', maxWidth: 320 }}>
+            <div style={{ fontWeight: 700, color: C.navy, marginBottom: 6 }}>Abonne-toi pour débloquer cette section</div>
+            <div style={{ fontSize: 13, color: C.inkSoft }}>Rends-toi dans Paramètres pour t'abonner (29€/mois).</div>
+          </div>
+        </div>
+      )}
+      <div style={!subscribed ? { filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' } : {}}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 /* ==================================================================================
    RESERVATION MODAL
    ================================================================================== */
@@ -505,7 +523,7 @@ function MonthGrid({ anchor, reservations, onDayClick, C }) {
   );
 }
 
-function CalendarView({ reservations, onSlotClick, onEventClick, C }) {
+function CalendarView({ reservations, onSlotClick, onEventClick, C, subscribed }) {
   const [view, setView] = useState('week');
   const [anchor, setAnchor] = useState(new Date());
   const weekStart = startOfWeek(anchor);
@@ -548,6 +566,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, C }) {
           <button onClick={() => navigate(1)} style={{ border: `1px solid ${C.iceLine}`, background: C.card, color: C.ink, borderRadius: 8, padding: 8, cursor: 'pointer' }}><ChevronRight size={16} /></button>
         </div>
       </div>
+      <BlurGate subscribed={subscribed} C={C}>
       {view === 'month' ? (
         <MonthGrid anchor={anchor} reservations={reservations} onDayClick={(key) => { setAnchor(new Date(key + 'T00:00:00')); setView('day'); }} C={C} />
       ) : (
@@ -569,6 +588,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, C }) {
           </div>
         </div>
       )}
+      </BlurGate>
     </div>
   );
 }
@@ -679,13 +699,14 @@ function ClientModal({ client, onClose, C, devise }) {
   );
 }
 
-function ClientsView({ reservations, C, devise }) {
+function ClientsView({ reservations, C, devise, subscribed }) {
   const [search, setSearch] = useState(''); const [selected, setSelected] = useState(null);
   const clients = useMemo(() => aggregateClients(reservations), [reservations]);
   const filtered = clients.filter(c => (c.prenom + c.nom).toLowerCase().includes(search.toLowerCase()));
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>Clients</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4 }}>{clients.length} clients dans votre CRM</p></div>
+      <BlurGate subscribed={subscribed} C={C}>
       <div style={{ position: 'relative', maxWidth: 360 }}>
         <Search size={15} style={{ position: 'absolute', left: 12, top: 11, color: C.inkSoft }} />
         <input placeholder="Rechercher un client..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: '100%', border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '9px 14px 9px 34px', fontSize: 14, background: C.card, color: C.ink }} />
@@ -707,6 +728,7 @@ function ClientsView({ reservations, C, devise }) {
         ))}
         {filtered.length === 0 && <div style={{ color: C.inkSoft, fontSize: 14 }}>Aucun client ne correspond à votre recherche.</div>}
       </div>
+      </BlurGate>
       {selected && <ClientModal client={selected} onClose={() => setSelected(null)} C={C} devise={devise} />}
     </div>
   );
@@ -741,7 +763,7 @@ function InvoiceModal({ reservation, onClose, C, devise, settings }) {
   );
 }
 
-function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings }) {
+function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, subscribed }) {
   const [invoiceFor, setInvoiceFor] = useState(null);
   const [subView, setSubView] = useState('paiements'); // 'paiements' | 'factures'
   const [search, setSearch] = useState('');
@@ -769,6 +791,7 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings }
         <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>Paiements &amp; Factures</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4 }}>Suivi des encaissements, export comptable et factures clients</p></div>
         <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 8, background: C.card, border: `1px solid ${C.iceLine}`, color: C.ink, borderRadius: 9, padding: '10px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}><Download size={15} /> Exporter (CSV)</button>
       </div>
+      <BlurGate subscribed={subscribed} C={C}>
       <div className="kpi-grid-3">
         <KpiCard C={C} label="Encaissé" value={fmtEUR(encaisse, devise)} icon={Euro} accent={ACCENTS.green} />
         <KpiCard C={C} label="En attente" value={fmtEUR(enAttente, devise)} icon={Euro} accent={ACCENTS.amber} />
@@ -847,6 +870,7 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings }
         </div>
       )}
 
+      </BlurGate>
       {invoiceFor && <InvoiceModal reservation={invoiceFor} onClose={() => setInvoiceFor(null)} C={C} devise={devise} settings={settings} />}
     </div>
   );
@@ -855,7 +879,7 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings }
 /* ==================================================================================
    STATISTIQUES
    ================================================================================== */
-function StatsView({ reservations, C, devise }) {
+function StatsView({ reservations, C, devise, subscribed }) {
   const active = reservations.filter(r => r.statut !== 'Annulée');
   const clients = aggregateClients(reservations);
   const totalHeures = active.reduce((s, r) => s + (timeToMinutes(r.heureFin) - timeToMinutes(r.heureDebut)) / 60, 0);
@@ -872,6 +896,7 @@ function StatsView({ reservations, C, devise }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>Statistiques</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4 }}>Vue d'ensemble de votre activité</p></div>
+      <BlurGate subscribed={subscribed} C={C}>
       <div className="kpi-grid-4">
         <KpiCard C={C} label="Heures enseignées" value={`${totalHeures.toFixed(0)}h`} icon={TrendingUp} accent={ACCENTS.blue} />
         <KpiCard C={C} label="Cours réalisés" value={active.length} icon={Repeat} accent={ACCENTS.green} />
@@ -910,6 +935,7 @@ function StatsView({ reservations, C, devise }) {
           </ResponsiveContainer>
         </div>
       </div>
+      </BlurGate>
     </div>
   );
 }
@@ -917,7 +943,7 @@ function StatsView({ reservations, C, devise }) {
 /* ==================================================================================
    PARAMETRES
    ================================================================================== */
-function ParametresView({ settings, onSave, C }) {
+function ParametresView({ settings, onSave, C, subscribed }) {
   const [form, setForm] = useState(settings);
   const [saved, setSaved] = useState(false);
   const [subLoading, setSubLoading] = useState(false);
@@ -968,6 +994,7 @@ function ParametresView({ settings, onSave, C }) {
         </div>
       ))}
 
+      <BlurGate subscribed={subscribed} C={C}>
       {section('Coordonnées', (
         <div className="form-grid-2">
           {field('Nom affiché', <input style={inputStyle} value={form.nom} onChange={set('nom')} />)}
@@ -1157,6 +1184,7 @@ function AuthScreen({ onAuth }) {
         </div>
         <p style={{ textAlign: 'center', fontSize: 11.5, color: C.inkSoft, marginTop: 16 }}>Version prototype — l'authentification n'est pas encore reliée à une vraie base de données.</p>
       </div>
+      </BlurGate>
     </div>
   );
 }
@@ -1308,17 +1336,17 @@ export default function App() {
         ) : tab === 'dashboard' ? (
           <Dashboard reservations={reservations} onNewReservation={() => openNew()} C={C} devise={settings.devise} subscribed={subscribed} />
         ) : tab === 'calendar' ? (
-          <CalendarView reservations={reservations} onSlotClick={openNew} onEventClick={openEdit} C={C} />
+          <CalendarView reservations={reservations} onSlotClick={openNew} onEventClick={openEdit} C={C} subscribed={subscribed} />
         ) : tab === 'reservations' ? (
           <ReservationsView reservations={reservations} onNew={() => openNew()} onEdit={openEdit} C={C} devise={settings.devise} />
         ) : tab === 'clients' ? (
-          <ClientsView reservations={reservations} C={C} devise={settings.devise} />
+          <ClientsView reservations={reservations} C={C} devise={settings.devise} subscribed={subscribed} />
         ) : tab === 'paiements' ? (
-          <PaiementsView reservations={reservations} onUpdate={handleUpdate} onDelete={handleDelete} C={C} devise={settings.devise} settings={settings} />
+          <PaiementsView reservations={reservations} onUpdate={handleUpdate} onDelete={handleDelete} C={C} devise={settings.devise} settings={settings} subscribed={subscribed} />
         ) : tab === 'stats' ? (
-          <StatsView reservations={reservations} C={C} devise={settings.devise} />
+          <StatsView reservations={reservations} C={C} devise={settings.devise} subscribed={subscribed} />
         ) : (
-          <ParametresView settings={settings} onSave={handleSaveSettings} C={C} />
+          <ParametresView settings={settings} onSave={handleSaveSettings} C={C} subscribed={subscribed} />
         )}
       </main>
 
