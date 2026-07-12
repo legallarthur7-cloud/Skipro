@@ -988,9 +988,15 @@ function ParametresView({ settings, onSave, C, subscribed }) {
             <div style={{ fontSize: 15, fontWeight: 700, color: C.navy }}>SkiPro — 29€/mois</div>
             <div style={{ fontSize: 13, color: C.inkSoft, marginTop: 2 }}>Toutes les fonctionnalités incluses. Résiliable à tout moment.</div>
           </div>
-          <button onClick={handleSubscribe} disabled={subLoading} style={{ background: '#2E6F8E', color: '#fff', border: 'none', borderRadius: 9, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: subLoading ? 'default' : 'pointer', opacity: subLoading ? 0.7 : 1 }}>
-            {subLoading ? 'Un instant...' : "S'abonner"}
-          </button>
+          {subscribed ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#E6F4EA', color: '#1E7A3D', borderRadius: 9, padding: '11px 18px', fontSize: 14, fontWeight: 600 }}>
+              ✓ Abonnement actif
+            </div>
+          ) : (
+            <button onClick={handleSubscribe} disabled={subLoading} style={{ background: '#2E6F8E', color: '#fff', border: 'none', borderRadius: 9, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: subLoading ? 'default' : 'pointer', opacity: subLoading ? 0.7 : 1 }}>
+              {subLoading ? 'Un instant...' : "S'abonner"}
+            </button>
+          )}
         </div>
       ))}
 
