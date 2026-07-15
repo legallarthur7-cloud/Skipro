@@ -1019,6 +1019,7 @@ function ParametresView({ settings, onSave, C, subscribed }) {
 
       <BlurGate subscribed={subscribed} C={C}>
       {section('Coordonnées', (
+        <>
         <div className="form-grid-2">
           {field('Nom affiché', <input style={inputStyle} value={form.nom} onChange={set('nom')} />)}
           {field('E-mail', <input style={inputStyle} value={form.email} onChange={set('email')} />)}
@@ -1028,6 +1029,7 @@ function ParametresView({ settings, onSave, C, subscribed }) {
         <div style={{ marginTop: 14 }}>
           {field('Adresse postale', <input style={inputStyle} value={form.adresse || ''} onChange={set('adresse')} placeholder="Numéro, rue, code postal, ville" />)}
         </div>
+        </>
       ))}
 
       {section('Préférences régionales', (
