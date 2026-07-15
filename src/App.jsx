@@ -197,7 +197,7 @@ async function persistSettings(s) { try { await window.storage.set(SETTINGS_KEY,
    RESPONSIVE STYLESHEET (mobile portrait first-class support)
    ================================================================================== */
 const RESPONSIVE_CSS = `
-  .app-root{ display:flex; min-height:100vh; }
+  .app-root{ display:flex; height:100vh; }
   .sidebar{ width:220px; flex-shrink:0; display:flex; flex-direction:column; padding:22px 16px; }
   .sidebar-nav{ display:flex; flex-direction:column; gap:3px; }
   .nav-btn{ display:flex; align-items:center; gap:11px; padding:10px 12px; font-size:14px; }
@@ -220,7 +220,7 @@ const RESPONSIVE_CSS = `
   }
   .mobile-topbar{ display:none; }
   @media (max-width:768px){
-    .app-root{ display:block; }
+    .app-root{ display:block; height:auto; }
     .sidebar{ display:none; }
     .mobile-topbar{
       display:flex; align-items:center; justify-content:space-between;
