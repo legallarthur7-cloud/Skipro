@@ -65,7 +65,12 @@ const MODES_PAIEMENT = ['Non renseigné', 'Espèces', 'Carte bancaire', 'Viremen
 const LANGUES = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const ENGAGEMENTS = ['Heure', 'Demi-journée', 'Journée'];
-const CRENEAUX = { 'Matin': ['09:00', '12:30'], 'Après-midi': ['13:30', '17:00'] };
+function getCreneaux(settings) {
+  return {
+    'Matin': [settings.matinDebut || '09:00', settings.matinFin || '12:30'],
+    'Après-midi': [settings.apresMidiDebut || '13:30', settings.apresMidiFin || '17:00']
+  };
+}
 const JOURNEE_HOURS = ['09:00', '16:30'];
 
 /* ==================================================================================
@@ -129,6 +134,7 @@ const DEFAULT_SETTINGS = {
   fuseauHoraire: 'Europe/Paris',
   adresse: '', telephone: '', siret: '', profession: 'Moniteur de ski indépendant',
   iban: '', bic: '', banque: '',
+  matinDebut: '09:00', matinFin: '12:30', apresMidiDebut: '13:30', apresMidiFin: '17:00',
   tarifSkiHaute: 75, tarifSkiBasse: 55, tarifSnowboardHaute: 80, tarifSnowboardBasse: 60,
   tarifDemiJourneeHaute: 210, tarifDemiJourneeBasse: 150, tarifJourneeHaute: 370, tarifJourneeBasse: 270,
   hauteSaisonDebut: '12-20', hauteSaisonFin: '02-28', seasonMode: 'vacances', zoneVacances: 'Toutes',
@@ -279,6 +285,7 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
   const isEdit = !!initial.id;
   const duration = useMemo(() => { const d = timeToMinutes(form.heureFin) - timeToMinutes(form.heureDebut); return d > 0 ? minutesLabel(d) : '—'; }, [form.heureDebut, form.heureFin]);
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+  const CRENEAUX = getCreneaux(settings);
 
   const priceForType = useCallback((type, creneau, dateKey) => {
     const high = isHighSeason(dateKey, settings);
@@ -1112,6 +1119,15 @@ function ParametresView({ settings, onSave, C, subscribed }) {
           {field(`Demi-journée — Basse saison (${form.devise})`, <input type="number" style={inputStyle} value={form.tarifDemiJourneeBasse} onChange={set('tarifDemiJourneeBasse')} />)}
           {field(`Journée — Haute saison (${form.devise})`, <input type="number" style={inputStyle} value={form.tarifJourneeHaute} onChange={set('tarifJourneeHaute')} />)}
           {field(`Journée — Basse saison (${form.devise})`, <input type="number" style={inputStyle} value={form.tarifJourneeBasse} onChange={set('tarifJourneeBasse')} />)}
+        </div>
+      ))}
+
+      {section('Horaires des demi-journées', (
+        <div className="form-grid-2">
+          {field('Matin — début', <input type="time" style={inputStyle} value={form.matinDebut || '09:00'} onChange={set('matinDebut')} />)}
+          {field('Matin — fin', <input type="time" style={inputStyle} value={form.matinFin || '12:30'} onChange={set('matinFin')} />)}
+          {field('Après-midi — début', <input type="time" style={inputStyle} value={form.apresMidiDebut || '13:30'} onChange={set('apresMidiDebut')} />)}
+          {field('Après-midi — fin', <input type="time" style={inputStyle} value={form.apresMidiFin || '17:00'} onChange={set('apresMidiFin')} />)}
         </div>
       ))}
 
