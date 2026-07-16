@@ -92,7 +92,10 @@ const UI_TRANSLATIONS = {
     fDate: 'Date', fHeureDebut: 'Heure de début', fHeureFin: 'Heure de fin', fDuree: 'Durée', fPrix: 'Prix',
     suggestedRate: 'Tarif suggéré', fStatut: 'Statut', fModePaiement: 'Mode de règlement',
     fStatutPaiement: 'Statut du paiement', fNotes: 'Notes privées',
-    btnCancel: 'Annuler', btnSave: 'Enregistrer', btnCreateReservation: 'Créer la réservation', btnDelete: 'Supprimer'
+    btnCancel: 'Annuler', btnSave: 'Enregistrer', btnCreateReservation: 'Créer la réservation', btnDelete: 'Supprimer',
+    totalReservations: 'réservations au total', searchClientStation: 'Rechercher un client, une station...',
+    filterAll: 'Tous', thHoraire: 'Horaire', thPaiement: 'Paiement', thClient: 'Client',
+    noResults: 'Aucune réservation ne correspond à votre recherche.'
   },
   Anglais: {
     dashboard: 'Dashboard', calendar: 'Calendar', reservations: 'Bookings',
@@ -120,7 +123,10 @@ const UI_TRANSLATIONS = {
     fDate: 'Date', fHeureDebut: 'Start time', fHeureFin: 'End time', fDuree: 'Duration', fPrix: 'Price',
     suggestedRate: 'Suggested rate', fStatut: 'Status', fModePaiement: 'Payment method',
     fStatutPaiement: 'Payment status', fNotes: 'Private notes',
-    btnCancel: 'Cancel', btnSave: 'Save', btnCreateReservation: 'Create booking', btnDelete: 'Delete'
+    btnCancel: 'Cancel', btnSave: 'Save', btnCreateReservation: 'Create booking', btnDelete: 'Delete',
+    totalReservations: 'bookings total', searchClientStation: 'Search a client, a resort...',
+    filterAll: 'All', thHoraire: 'Time', thPaiement: 'Payment', thClient: 'Client',
+    noResults: 'No booking matches your search.'
   },
   Espagnol: {
     dashboard: 'Panel', calendar: 'Calendario', reservations: 'Reservas',
@@ -148,7 +154,10 @@ const UI_TRANSLATIONS = {
     fDate: 'Fecha', fHeureDebut: 'Hora de inicio', fHeureFin: 'Hora de fin', fDuree: 'Duración', fPrix: 'Precio',
     suggestedRate: 'Tarifa sugerida', fStatut: 'Estado', fModePaiement: 'Método de pago',
     fStatutPaiement: 'Estado del pago', fNotes: 'Notas privadas',
-    btnCancel: 'Cancelar', btnSave: 'Guardar', btnCreateReservation: 'Crear reserva', btnDelete: 'Eliminar'
+    btnCancel: 'Cancelar', btnSave: 'Guardar', btnCreateReservation: 'Crear reserva', btnDelete: 'Eliminar',
+    totalReservations: 'reservas en total', searchClientStation: 'Buscar un cliente, una estación...',
+    filterAll: 'Todos', thHoraire: 'Horario', thPaiement: 'Pago', thClient: 'Cliente',
+    noResults: 'Ninguna reserva coincide con tu búsqueda.'
   },
   Italien: {
     dashboard: 'Bacheca', calendar: 'Calendario', reservations: 'Prenotazioni',
@@ -176,7 +185,10 @@ const UI_TRANSLATIONS = {
     fDate: 'Data', fHeureDebut: 'Ora di inizio', fHeureFin: 'Ora di fine', fDuree: 'Durata', fPrix: 'Prezzo',
     suggestedRate: 'Tariffa consigliata', fStatut: 'Stato', fModePaiement: 'Metodo di pagamento',
     fStatutPaiement: 'Stato del pagamento', fNotes: 'Note private',
-    btnCancel: 'Annulla', btnSave: 'Salva', btnCreateReservation: 'Crea prenotazione', btnDelete: 'Elimina'
+    btnCancel: 'Annulla', btnSave: 'Salva', btnCreateReservation: 'Crea prenotazione', btnDelete: 'Elimina',
+    totalReservations: 'prenotazioni totali', searchClientStation: 'Cerca un cliente, una stazione...',
+    filterAll: 'Tutti', thHoraire: 'Orario', thPaiement: 'Pagamento', thClient: 'Cliente',
+    noResults: 'Nessuna prenotazione corrisponde alla tua ricerca.'
   },
   Portugais: {
     dashboard: 'Painel', calendar: 'Calendário', reservations: 'Reservas',
@@ -204,7 +216,10 @@ const UI_TRANSLATIONS = {
     fDate: 'Data', fHeureDebut: 'Hora de início', fHeureFin: 'Hora de término', fDuree: 'Duração', fPrix: 'Preço',
     suggestedRate: 'Tarifa sugerida', fStatut: 'Estado', fModePaiement: 'Método de pagamento',
     fStatutPaiement: 'Estado do pagamento', fNotes: 'Notas privadas',
-    btnCancel: 'Cancelar', btnSave: 'Salvar', btnCreateReservation: 'Criar reserva', btnDelete: 'Excluir'
+    btnCancel: 'Cancelar', btnSave: 'Salvar', btnCreateReservation: 'Criar reserva', btnDelete: 'Excluir',
+    totalReservations: 'reservas no total', searchClientStation: 'Buscar um cliente, uma estação...',
+    filterAll: 'Todos', thHoraire: 'Horário', thPaiement: 'Pagamento',
+    thClient: 'Cliente', noResults: 'Nenhuma reserva corresponde à sua busca.'
   }
 };
 const LOCALE_MAP = { Français: 'fr-FR', Anglais: 'en-US', Espagnol: 'es-ES', Italien: 'it-IT', Portugais: 'pt-PT' };
@@ -767,7 +782,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, C, subscribed, 
 /* ==================================================================================
    RESERVATIONS LIST
    ================================================================================== */
-function ReservationsView({ reservations, onNew, onEdit, C, devise }) {
+function ReservationsView({ reservations, onNew, onEdit, C, devise, langue }) {
   const [filter, setFilter] = useState(''); const [statutFilter, setStatutFilter] = useState('Tous');
   const filtered = reservations.filter(r => (statutFilter === 'Tous' || r.statut === statutFilter)).filter(r => (r.nom + r.prenom + r.station).toLowerCase().includes(filter.toLowerCase())).sort((a, b) => b.date.localeCompare(a.date) || a.heureDebut.localeCompare(b.heureDebut));
   const th = { textAlign: 'left', fontSize: 12, fontWeight: 700, color: C.inkSoft, textTransform: 'uppercase', letterSpacing: '.03em', padding: '10px 14px', borderBottom: `1px solid ${C.iceLine}` };
@@ -775,16 +790,16 @@ function ReservationsView({ reservations, onNew, onEdit, C, devise }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div className="header-row">
-        <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>Réservations</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4 }}>{reservations.length} réservations au total</p></div>
-        <button onClick={onNew} style={{ display: 'flex', alignItems: 'center', gap: 8, background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}><Plus size={16} /> Nouvelle réservation</button>
+        <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>{tUI('reservations', langue)}</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4 }}>{reservations.length} {tUI('totalReservations', langue)}</p></div>
+        <button onClick={onNew} style={{ display: 'flex', alignItems: 'center', gap: 8, background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}><Plus size={16} /> {tUI('newReservation', langue)}</button>
       </div>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <input placeholder="Rechercher un client, une station..." value={filter} onChange={e => setFilter(e.target.value)} style={{ flex: 1, border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '9px 14px', fontSize: 14, background: C.card, color: C.ink }} />
-        <select value={statutFilter} onChange={e => setStatutFilter(e.target.value)} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '9px 14px', fontSize: 14, background: C.card, color: C.ink }}>{['Tous', ...STATUTS].map(s => <option key={s}>{s}</option>)}</select>
+        <input placeholder={tUI('searchClientStation', langue)} value={filter} onChange={e => setFilter(e.target.value)} style={{ flex: 1, border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '9px 14px', fontSize: 14, background: C.card, color: C.ink }} />
+        <select value={statutFilter} onChange={e => setStatutFilter(e.target.value)} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '9px 14px', fontSize: 14, background: C.card, color: C.ink }}>{['Tous', ...STATUTS].map(s => <option key={s}>{s === 'Tous' ? tUI('filterAll', langue) : s}</option>)}</select>
       </div>
       <div style={{ background: C.card, border: `1px solid ${C.iceLine}`, borderRadius: 14, overflow: 'hidden', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr><th style={th}>Client</th><th style={th}>Date</th><th style={th}>Horaire</th><th style={th}>Discipline</th><th style={th}>Station</th><th style={th}>Prix</th><th style={th}>Statut</th><th style={th}>Paiement</th><th style={th}></th></tr></thead>
+          <thead><tr><th style={th}>{tUI('thClient', langue)}</th><th style={th}>{tUI('fDate', langue)}</th><th style={th}>{tUI('thHoraire', langue)}</th><th style={th}>{tUI('fDiscipline', langue)}</th><th style={th}>{tUI('fStation', langue)}</th><th style={th}>{tUI('fPrix', langue)}</th><th style={th}>{tUI('fStatut', langue)}</th><th style={th}>{tUI('thPaiement', langue)}</th><th style={th}></th></tr></thead>
           <tbody>
             {filtered.map(r => (
               <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => onEdit(r)}>
@@ -796,7 +811,7 @@ function ReservationsView({ reservations, onNew, onEdit, C, devise }) {
                 <td style={{ ...td, textAlign: 'right' }}><Pencil size={14} color={C.inkSoft} /></td>
               </tr>
             ))}
-            {filtered.length === 0 && <tr><td colSpan={9} style={{ ...td, textAlign: 'center', color: C.inkSoft, padding: '32px 14px' }}>Aucune réservation ne correspond à votre recherche.</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={9} style={{ ...td, textAlign: 'center', color: C.inkSoft, padding: '32px 14px' }}>{tUI('noResults', langue)}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -1570,7 +1585,7 @@ export default function App() {
         ) : tab === 'calendar' ? (
           <CalendarView reservations={reservations} onSlotClick={openNew} onEventClick={openEdit} C={C} subscribed={subscribed} langue={settings.langue} />
         ) : tab === 'reservations' ? (
-          <ReservationsView reservations={reservations} onNew={() => openNew()} onEdit={openEdit} C={C} devise={settings.devise} />
+          <ReservationsView reservations={reservations} onNew={() => openNew()} onEdit={openEdit} C={C} devise={settings.devise} langue={settings.langue} />
         ) : tab === 'clients' ? (
           <ClientsView reservations={reservations} C={C} devise={settings.devise} subscribed={subscribed} />
         ) : tab === 'paiements' ? (
