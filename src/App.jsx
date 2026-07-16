@@ -139,7 +139,7 @@ const UI_TRANSLATIONS = {
     authPrototypeNote: "Version prototype — l'authentification n'est pas encore reliée à une vraie base de données.",
     errFillAllFields: 'Merci de remplir tous les champs.', errPasswordsMismatch: 'Les mots de passe ne correspondent pas.',
     successAccountCreated: 'Compte créé ! Vérifie tes e-mails pour confirmer ton adresse, puis connecte-toi.',
-    errFillEmailPassword: 'Merci de renseigner ton e-mail et ton mot de passe.'
+    errFillEmailPassword: 'Merci de renseigner ton e-mail et ton mot de passe.', loadingText: 'Chargement…'
   },
   Anglais: {
     dashboard: 'Dashboard', calendar: 'Calendar', reservations: 'Bookings',
@@ -214,7 +214,7 @@ const UI_TRANSLATIONS = {
     authPrototypeNote: 'Prototype version — authentication is not yet connected to a real database.',
     errFillAllFields: 'Please fill in all fields.', errPasswordsMismatch: 'Passwords do not match.',
     successAccountCreated: 'Account created! Check your email to confirm your address, then log in.',
-    errFillEmailPassword: 'Please enter your email and password.'
+    errFillEmailPassword: 'Please enter your email and password.', loadingText: 'Loading…'
   },
   Espagnol: {
     dashboard: 'Panel', calendar: 'Calendario', reservations: 'Reservas',
@@ -289,7 +289,7 @@ const UI_TRANSLATIONS = {
     authPrototypeNote: 'Versión prototipo: la autenticación aún no está conectada a una base de datos real.',
     errFillAllFields: 'Por favor completa todos los campos.', errPasswordsMismatch: 'Las contraseñas no coinciden.',
     successAccountCreated: '¡Cuenta creada! Revisa tu correo para confirmar tu dirección y luego inicia sesión.',
-    errFillEmailPassword: 'Por favor ingresa tu correo y contraseña.'
+    errFillEmailPassword: 'Por favor ingresa tu correo y contraseña.', loadingText: 'Cargando…'
   },
   Italien: {
     dashboard: 'Bacheca', calendar: 'Calendario', reservations: 'Prenotazioni',
@@ -364,7 +364,7 @@ const UI_TRANSLATIONS = {
     authPrototypeNote: "Versione prototipo: l'autenticazione non è ancora collegata a un vero database.",
     errFillAllFields: 'Compila tutti i campi, per favore.', errPasswordsMismatch: 'Le password non corrispondono.',
     successAccountCreated: 'Account creato! Controlla la tua e-mail per confermare il tuo indirizzo, poi accedi.',
-    errFillEmailPassword: 'Inserisci la tua e-mail e password.'
+    errFillEmailPassword: 'Inserisci la tua e-mail e password.', loadingText: 'Caricamento…'
   },
   Portugais: {
     dashboard: 'Painel', calendar: 'Calendário', reservations: 'Reservas',
@@ -439,7 +439,7 @@ const UI_TRANSLATIONS = {
     authPrototypeNote: 'Versão protótipo — a autenticação ainda não está conectada a um banco de dados real.',
     errFillAllFields: 'Por favor, preencha todos os campos.', errPasswordsMismatch: 'As senhas não coincidem.',
     successAccountCreated: 'Conta criada! Verifique seu e-mail para confirmar seu endereço e depois faça login.',
-    errFillEmailPassword: 'Por favor, informe seu e-mail e senha.'
+    errFillEmailPassword: 'Por favor, informe seu e-mail e senha.', loadingText: 'Carregando…'
   }
 };
 const LOCALE_MAP = { Français: 'fr-FR', Anglais: 'en-US', Espagnol: 'es-ES', Italien: 'it-IT', Portugais: 'pt-PT' };
@@ -1773,10 +1773,10 @@ export default function App() {
               })}
             </nav>
             <button onClick={() => { setTab('parametres'); setMobileMenuOpen(false); }} style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: 14.5, background: tab === 'parametres' ? 'rgba(255,255,255,0.1)' : 'transparent', color: tab === 'parametres' ? '#fff' : 'rgba(255,255,255,0.68)' }}>
-              <SettingsIcon size={17} /> Paramètres
+              <SettingsIcon size={17} /> {tUI('parametres', settings.langue)}
             </button>
             <button onClick={() => { setAuthed(false); setMobileMenuOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: 14.5, background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>
-              <LogOut size={17} /> Déconnexion
+              <LogOut size={17} /> {tUI('deconnexion', settings.langue)}
             </button>
           </div>
         </div>
@@ -1807,7 +1807,7 @@ export default function App() {
 
       <main className="main-content">
         {loading ? (
-          <div style={{ color: C.inkSoft, fontSize: 14 }}>Chargement…</div>
+          <div style={{ color: C.inkSoft, fontSize: 14 }}>{tUI('loadingText', settings.langue)}</div>
         ) : tab === 'dashboard' ? (
           <Dashboard reservations={reservations} onNewReservation={() => openNew()} C={C} devise={settings.devise} subscribed={subscribed} langue={settings.langue} />
         ) : tab === 'calendar' ? (
