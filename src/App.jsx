@@ -81,7 +81,8 @@ const UI_TRANSLATIONS = {
     kpiSeasonHours: 'Heures — saison',
     chartRevenue14d: "Évolution du chiffre d'affaires (14 jours)", chartDisciplineSplit: 'Répartition des disciplines',
     upcomingLessons: 'Prochains cours', noUpcomingLessons: 'Aucun cours à venir.',
-    recentPayments: 'Derniers paiements reçus', noPaymentsRecorded: 'Aucun paiement enregistré.'
+    recentPayments: 'Derniers paiements reçus', noPaymentsRecorded: 'Aucun paiement enregistré.',
+    calendarTitle: 'Calendrier', viewDay: 'Jour', viewWeek: 'Semaine', viewMonth: 'Mois', today: "Aujourd'hui", lessonsCount: 'cours'
   },
   Anglais: {
     dashboard: 'Dashboard', calendar: 'Calendar', reservations: 'Bookings',
@@ -98,7 +99,8 @@ const UI_TRANSLATIONS = {
     kpiSeasonHours: 'Hours — season',
     chartRevenue14d: 'Revenue trend (14 days)', chartDisciplineSplit: 'Discipline breakdown',
     upcomingLessons: 'Upcoming lessons', noUpcomingLessons: 'No upcoming lessons.',
-    recentPayments: 'Recent payments', noPaymentsRecorded: 'No payments recorded.'
+    recentPayments: 'Recent payments', noPaymentsRecorded: 'No payments recorded.',
+    calendarTitle: 'Calendar', viewDay: 'Day', viewWeek: 'Week', viewMonth: 'Month', today: 'Today', lessonsCount: 'lessons'
   },
   Espagnol: {
     dashboard: 'Panel', calendar: 'Calendario', reservations: 'Reservas',
@@ -115,7 +117,8 @@ const UI_TRANSLATIONS = {
     kpiSeasonHours: 'Horas — temporada',
     chartRevenue14d: 'Evolución de ingresos (14 días)', chartDisciplineSplit: 'Reparto por disciplina',
     upcomingLessons: 'Próximas clases', noUpcomingLessons: 'No hay clases próximas.',
-    recentPayments: 'Últimos pagos recibidos', noPaymentsRecorded: 'No hay pagos registrados.'
+    recentPayments: 'Últimos pagos recibidos', noPaymentsRecorded: 'No hay pagos registrados.',
+    calendarTitle: 'Calendario', viewDay: 'Día', viewWeek: 'Semana', viewMonth: 'Mes', today: 'Hoy', lessonsCount: 'clases'
   },
   Italien: {
     dashboard: 'Bacheca', calendar: 'Calendario', reservations: 'Prenotazioni',
@@ -132,7 +135,8 @@ const UI_TRANSLATIONS = {
     kpiSeasonHours: 'Ore — stagione',
     chartRevenue14d: 'Andamento entrate (14 giorni)', chartDisciplineSplit: 'Ripartizione discipline',
     upcomingLessons: 'Prossime lezioni', noUpcomingLessons: 'Nessuna lezione in programma.',
-    recentPayments: 'Ultimi pagamenti ricevuti', noPaymentsRecorded: 'Nessun pagamento registrato.'
+    recentPayments: 'Ultimi pagamenti ricevuti', noPaymentsRecorded: 'Nessun pagamento registrato.',
+    calendarTitle: 'Calendario', viewDay: 'Giorno', viewWeek: 'Settimana', viewMonth: 'Mese', today: 'Oggi', lessonsCount: 'lezioni'
   },
   Portugais: {
     dashboard: 'Painel', calendar: 'Calendário', reservations: 'Reservas',
@@ -149,10 +153,18 @@ const UI_TRANSLATIONS = {
     kpiSeasonHours: 'Horas — temporada',
     chartRevenue14d: 'Evolução da receita (14 dias)', chartDisciplineSplit: 'Distribuição por modalidade',
     upcomingLessons: 'Próximas aulas', noUpcomingLessons: 'Nenhuma aula agendada.',
-    recentPayments: 'Últimos pagamentos recebidos', noPaymentsRecorded: 'Nenhum pagamento registrado.'
+    recentPayments: 'Últimos pagamentos recebidos', noPaymentsRecorded: 'Nenhum pagamento registrado.',
+    calendarTitle: 'Calendário', viewDay: 'Dia', viewWeek: 'Semana', viewMonth: 'Mês', today: 'Hoje', lessonsCount: 'aulas'
   }
 };
 const LOCALE_MAP = { Français: 'fr-FR', Anglais: 'en-US', Espagnol: 'es-ES', Italien: 'it-IT', Portugais: 'pt-PT' };
+const DAYS_SHORT_MAP = {
+  Français: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+  Anglais: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  Espagnol: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+  Italien: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
+  Portugais: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+};
 function tUI(key, langue) {
   return (UI_TRANSLATIONS[langue] && UI_TRANSLATIONS[langue][key]) || UI_TRANSLATIONS['Français'][key] || key;
 }
@@ -603,7 +615,8 @@ function Dashboard({ reservations, onNewReservation, C, devise, subscribed, lang
    ================================================================================== */
 const DAY_START = 8, DAY_END = 19, ROW_HEIGHT = 52;
 
-function MonthGrid({ anchor, reservations, onDayClick, C }) {
+function MonthGrid({ anchor, reservations, onDayClick, C, langue }) {
+  const days_short = DAYS_SHORT_MAP[langue] || DAYS_SHORT_MAP['Français'];
   const year = anchor.getFullYear(), month = anchor.getMonth();
   const start = startOfWeek(new Date(year, month, 1));
   const days = Array.from({ length: 42 }, (_, i) => addDays(start, i));
@@ -611,13 +624,13 @@ function MonthGrid({ anchor, reservations, onDayClick, C }) {
   return (
     <div style={{ background: C.card, border: `1px solid ${C.iceLine}`, borderRadius: 14, overflow: 'hidden' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
-        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(d => <div key={d} style={{ textAlign: 'center', padding: '10px 0', fontSize: 11.5, fontWeight: 700, color: C.inkSoft, borderBottom: `1px solid ${C.iceLine}` }}>{d}</div>)}
+        {days_short.map(d => <div key={d} style={{ textAlign: 'center', padding: '10px 0', fontSize: 11.5, fontWeight: 700, color: C.inkSoft, borderBottom: `1px solid ${C.iceLine}` }}>{d}</div>)}
         {days.map(d => {
           const key = toKey(d); const count = countFor(key); const inMonth = d.getMonth() === month;
           return (
             <div key={key} onClick={() => onDayClick(key)} style={{ minHeight: 84, borderRight: `1px solid ${C.iceLine}`, borderBottom: `1px solid ${C.iceLine}`, padding: 8, cursor: 'pointer', background: inMonth ? C.card : C.snowDim, opacity: inMonth ? 1 : 0.55 }}>
               <div style={{ fontSize: 12.5, fontWeight: key === toKey(new Date()) ? 700 : 500, color: key === toKey(new Date()) ? ACCENTS.glacier : C.ink }}>{d.getDate()}</div>
-              {count > 0 && <div style={{ marginTop: 6, fontSize: 11, fontWeight: 600, color: ACCENTS.glacierDeep, background: C.ice, display: 'inline-block', padding: '2px 7px', borderRadius: 100 }}>{count} cours</div>}
+              {count > 0 && <div style={{ marginTop: 6, fontSize: 11, fontWeight: 600, color: ACCENTS.glacierDeep, background: C.ice, display: 'inline-block', padding: '2px 7px', borderRadius: 100 }}>{count} {tUI('lessonsCount', langue)}</div>}
             </div>
           );
         })}
@@ -626,7 +639,8 @@ function MonthGrid({ anchor, reservations, onDayClick, C }) {
   );
 }
 
-function CalendarView({ reservations, onSlotClick, onEventClick, C, subscribed }) {
+function CalendarView({ reservations, onSlotClick, onEventClick, C, subscribed, langue }) {
+  const locale = LOCALE_MAP[langue] || 'fr-FR';
   const [view, setView] = useState('week');
   const [anchor, setAnchor] = useState(new Date());
   const weekStart = startOfWeek(anchor);
@@ -634,7 +648,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, C, subscribed }
   const hours = Array.from({ length: DAY_END - DAY_START }, (_, i) => DAY_START + i);
   const byDate = useCallback((key) => reservations.filter(r => r.date === key && r.statut !== 'Annulée'), [reservations]);
   const navigate = (dir) => { if (view === 'month') setAnchor(d => { const x = new Date(d); x.setMonth(x.getMonth() + dir); return x; }); else if (view === 'week') setAnchor(d => addDays(d, dir * 7)); else setAnchor(d => addDays(d, dir)); };
-  const label = view === 'month' ? anchor.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : view === 'week' ? `${weekDays[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} — ${weekDays[6].toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` : anchor.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const label = view === 'month' ? anchor.toLocaleDateString(locale, { month: 'long', year: 'numeric' }) : view === 'week' ? `${weekDays[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })} — ${weekDays[6].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}` : anchor.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
 
   const renderDayColumn = (day) => {
     const key = toKey(day); const events = byDate(key); const isToday = key === toKey(new Date());
@@ -659,19 +673,19 @@ function CalendarView({ reservations, onSlotClick, onEventClick, C, subscribed }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div className="header-row">
-        <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>Calendrier</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4, textTransform: 'capitalize' }}>{label}</p></div>
+        <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>{tUI('calendarTitle', langue)}</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4, textTransform: 'capitalize' }}>{label}</p></div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', border: `1px solid ${C.iceLine}`, borderRadius: 9, overflow: 'hidden' }}>
-            {['day', 'week', 'month'].map(v => <button key={v} onClick={() => setView(v)} style={{ padding: '8px 14px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: view === v ? ACCENTS.glacier : C.card, color: view === v ? '#fff' : C.ink }}>{v === 'day' ? 'Jour' : v === 'week' ? 'Semaine' : 'Mois'}</button>)}
+            {['day', 'week', 'month'].map(v => <button key={v} onClick={() => setView(v)} style={{ padding: '8px 14px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, background: view === v ? ACCENTS.glacier : C.card, color: view === v ? '#fff' : C.ink }}>{v === 'day' ? tUI('viewDay', langue) : v === 'week' ? tUI('viewWeek', langue) : tUI('viewMonth', langue)}</button>)}
           </div>
           <button onClick={() => navigate(-1)} style={{ border: `1px solid ${C.iceLine}`, background: C.card, color: C.ink, borderRadius: 8, padding: 8, cursor: 'pointer' }}><ChevronLeft size={16} /></button>
-          <button onClick={() => setAnchor(new Date())} style={{ border: `1px solid ${C.iceLine}`, background: C.card, color: C.ink, borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Aujourd'hui</button>
+          <button onClick={() => setAnchor(new Date())} style={{ border: `1px solid ${C.iceLine}`, background: C.card, color: C.ink, borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>{tUI('today', langue)}</button>
           <button onClick={() => navigate(1)} style={{ border: `1px solid ${C.iceLine}`, background: C.card, color: C.ink, borderRadius: 8, padding: 8, cursor: 'pointer' }}><ChevronRight size={16} /></button>
         </div>
       </div>
       <BlurGate subscribed={subscribed} C={C}>
       {view === 'month' ? (
-        <MonthGrid anchor={anchor} reservations={reservations} onDayClick={(key) => { setAnchor(new Date(key + 'T00:00:00')); setView('day'); }} C={C} />
+        <MonthGrid anchor={anchor} reservations={reservations} onDayClick={(key) => { setAnchor(new Date(key + 'T00:00:00')); setView('day'); }} C={C} langue={langue} />
       ) : (
         <div className="cal-scroll" style={{ background: C.card, border: `1px solid ${C.iceLine}`, borderRadius: 14, overflow: 'hidden' }}>
           <div className={view === 'week' ? 'cal-min' : ''}>
@@ -679,7 +693,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, C, subscribed }
               <div style={{ width: 52, flexShrink: 0 }} />
               {(view === 'week' ? weekDays : [anchor]).map(d => (
                 <div key={toKey(d)} style={{ flex: 1, textAlign: 'center', padding: '12px 0', borderBottom: `1px solid ${C.iceLine}`, borderLeft: `1px solid ${C.iceLine}` }}>
-                  <div style={{ fontSize: 11.5, color: C.inkSoft, textTransform: 'uppercase', fontWeight: 600 }}>{d.toLocaleDateString('fr-FR', { weekday: 'short' })}</div>
+                  <div style={{ fontSize: 11.5, color: C.inkSoft, textTransform: 'uppercase', fontWeight: 600 }}>{d.toLocaleDateString(locale, { weekday: 'short' })}</div>
                   <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 16, color: toKey(d) === toKey(new Date()) ? ACCENTS.glacier : C.navy }}>{d.getDate()}</div>
                 </div>
               ))}
@@ -1500,7 +1514,7 @@ export default function App() {
         ) : tab === 'dashboard' ? (
           <Dashboard reservations={reservations} onNewReservation={() => openNew()} C={C} devise={settings.devise} subscribed={subscribed} langue={settings.langue} />
         ) : tab === 'calendar' ? (
-          <CalendarView reservations={reservations} onSlotClick={openNew} onEventClick={openEdit} C={C} subscribed={subscribed} />
+          <CalendarView reservations={reservations} onSlotClick={openNew} onEventClick={openEdit} C={C} subscribed={subscribed} langue={settings.langue} />
         ) : tab === 'reservations' ? (
           <ReservationsView reservations={reservations} onNew={() => openNew()} onEdit={openEdit} C={C} devise={settings.devise} />
         ) : tab === 'clients' ? (
