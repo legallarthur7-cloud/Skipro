@@ -128,7 +128,18 @@ const UI_TRANSLATIONS = {
     sectionHorairesDemi: 'Horaires des demi-journées', labelDebut: 'début', labelFin: 'fin',
     sectionJoursRepos: 'Jours de repos', sectionApparence: 'Apparence', btnClair: 'Clair', btnSombre: 'Sombre',
     sectionNotifications: 'Notifications', notifEmailLabel: 'Recevoir les confirmations par e-mail',
-    notifSmsLabel: 'Recevoir les rappels par SMS', settingsSaved: 'Paramètres enregistrés ✓'
+    notifSmsLabel: 'Recevoir les rappels par SMS', settingsSaved: 'Paramètres enregistrés ✓',
+    authTabLogin: 'Connexion', authTabSignup: 'Inscription', authForgotTitle: 'Mot de passe oublié',
+    authForgotDesc: "Indique ton e-mail, on t'enverra un lien de réinitialisation.", authSendLink: 'Envoyer le lien',
+    authBackToLogin: 'Retour à la connexion',
+    authResetSent: "Si un compte existe avec cette adresse, un lien de réinitialisation vient d'être envoyé.",
+    authNamePlaceholder: 'Prénom et nom (ex: Julien Berthier)', authEmailPlaceholder: 'E-mail',
+    authPasswordPlaceholder: 'Mot de passe', authConfirmPasswordPlaceholder: 'Confirmer le mot de passe',
+    authForgotLink: 'Mot de passe oublié ?', authSubmitLogin: 'Se connecter', authSubmitSignup: 'Créer mon compte',
+    authPrototypeNote: "Version prototype — l'authentification n'est pas encore reliée à une vraie base de données.",
+    errFillAllFields: 'Merci de remplir tous les champs.', errPasswordsMismatch: 'Les mots de passe ne correspondent pas.',
+    successAccountCreated: 'Compte créé ! Vérifie tes e-mails pour confirmer ton adresse, puis connecte-toi.',
+    errFillEmailPassword: 'Merci de renseigner ton e-mail et ton mot de passe.'
   },
   Anglais: {
     dashboard: 'Dashboard', calendar: 'Calendar', reservations: 'Bookings',
@@ -192,7 +203,18 @@ const UI_TRANSLATIONS = {
     sectionHorairesDemi: 'Half-day schedules', labelDebut: 'start', labelFin: 'end',
     sectionJoursRepos: 'Days off', sectionApparence: 'Appearance', btnClair: 'Light', btnSombre: 'Dark',
     sectionNotifications: 'Notifications', notifEmailLabel: 'Receive confirmations by email',
-    notifSmsLabel: 'Receive reminders by SMS', settingsSaved: 'Settings saved ✓'
+    notifSmsLabel: 'Receive reminders by SMS', settingsSaved: 'Settings saved ✓',
+    authTabLogin: 'Login', authTabSignup: 'Sign up', authForgotTitle: 'Forgot password',
+    authForgotDesc: "Enter your email, we'll send you a reset link.", authSendLink: 'Send link',
+    authBackToLogin: 'Back to login',
+    authResetSent: 'If an account exists with this address, a reset link has just been sent.',
+    authNamePlaceholder: 'First and last name (e.g. Julien Berthier)', authEmailPlaceholder: 'Email',
+    authPasswordPlaceholder: 'Password', authConfirmPasswordPlaceholder: 'Confirm password',
+    authForgotLink: 'Forgot password?', authSubmitLogin: 'Log in', authSubmitSignup: 'Create my account',
+    authPrototypeNote: 'Prototype version — authentication is not yet connected to a real database.',
+    errFillAllFields: 'Please fill in all fields.', errPasswordsMismatch: 'Passwords do not match.',
+    successAccountCreated: 'Account created! Check your email to confirm your address, then log in.',
+    errFillEmailPassword: 'Please enter your email and password.'
   },
   Espagnol: {
     dashboard: 'Panel', calendar: 'Calendario', reservations: 'Reservas',
@@ -256,7 +278,18 @@ const UI_TRANSLATIONS = {
     sectionHorairesDemi: 'Horarios de media jornada', labelDebut: 'inicio', labelFin: 'fin',
     sectionJoursRepos: 'Días de descanso', sectionApparence: 'Apariencia', btnClair: 'Claro', btnSombre: 'Oscuro',
     sectionNotifications: 'Notificaciones', notifEmailLabel: 'Recibir confirmaciones por correo electrónico',
-    notifSmsLabel: 'Recibir recordatorios por SMS', settingsSaved: 'Ajustes guardados ✓'
+    notifSmsLabel: 'Recibir recordatorios por SMS', settingsSaved: 'Ajustes guardados ✓',
+    authTabLogin: 'Iniciar sesión', authTabSignup: 'Registrarse', authForgotTitle: 'Contraseña olvidada',
+    authForgotDesc: 'Indica tu correo, te enviaremos un enlace de restablecimiento.', authSendLink: 'Enviar enlace',
+    authBackToLogin: 'Volver al inicio de sesión',
+    authResetSent: 'Si existe una cuenta con esta dirección, se acaba de enviar un enlace de restablecimiento.',
+    authNamePlaceholder: 'Nombre y apellido (ej: Julien Berthier)', authEmailPlaceholder: 'Correo electrónico',
+    authPasswordPlaceholder: 'Contraseña', authConfirmPasswordPlaceholder: 'Confirmar contraseña',
+    authForgotLink: '¿Contraseña olvidada?', authSubmitLogin: 'Iniciar sesión', authSubmitSignup: 'Crear mi cuenta',
+    authPrototypeNote: 'Versión prototipo: la autenticación aún no está conectada a una base de datos real.',
+    errFillAllFields: 'Por favor completa todos los campos.', errPasswordsMismatch: 'Las contraseñas no coinciden.',
+    successAccountCreated: '¡Cuenta creada! Revisa tu correo para confirmar tu dirección y luego inicia sesión.',
+    errFillEmailPassword: 'Por favor ingresa tu correo y contraseña.'
   },
   Italien: {
     dashboard: 'Bacheca', calendar: 'Calendario', reservations: 'Prenotazioni',
@@ -320,7 +353,18 @@ const UI_TRANSLATIONS = {
     sectionHorairesDemi: 'Orari mezza giornata', labelDebut: 'inizio', labelFin: 'fine',
     sectionJoursRepos: 'Giorni di riposo', sectionApparence: 'Aspetto', btnClair: 'Chiaro', btnSombre: 'Scuro',
     sectionNotifications: 'Notifiche', notifEmailLabel: 'Ricevi conferme via e-mail',
-    notifSmsLabel: 'Ricevi promemoria via SMS', settingsSaved: 'Impostazioni salvate ✓'
+    notifSmsLabel: 'Ricevi promemoria via SMS', settingsSaved: 'Impostazioni salvate ✓',
+    authTabLogin: 'Accedi', authTabSignup: 'Registrati', authForgotTitle: 'Password dimenticata',
+    authForgotDesc: 'Indica la tua e-mail, ti invieremo un link per reimpostarla.', authSendLink: 'Invia link',
+    authBackToLogin: 'Torna al login',
+    authResetSent: 'Se esiste un account con questo indirizzo, è appena stato inviato un link di reimpostazione.',
+    authNamePlaceholder: 'Nome e cognome (es: Julien Berthier)', authEmailPlaceholder: 'E-mail',
+    authPasswordPlaceholder: 'Password', authConfirmPasswordPlaceholder: 'Conferma password',
+    authForgotLink: 'Password dimenticata?', authSubmitLogin: 'Accedi', authSubmitSignup: 'Crea il mio account',
+    authPrototypeNote: "Versione prototipo: l'autenticazione non è ancora collegata a un vero database.",
+    errFillAllFields: 'Compila tutti i campi, per favore.', errPasswordsMismatch: 'Le password non corrispondono.',
+    successAccountCreated: 'Account creato! Controlla la tua e-mail per confermare il tuo indirizzo, poi accedi.',
+    errFillEmailPassword: 'Inserisci la tua e-mail e password.'
   },
   Portugais: {
     dashboard: 'Painel', calendar: 'Calendário', reservations: 'Reservas',
@@ -384,7 +428,18 @@ const UI_TRANSLATIONS = {
     sectionHorairesDemi: 'Horários de meio período', labelDebut: 'início', labelFin: 'fim',
     sectionJoursRepos: 'Dias de folga', sectionApparence: 'Aparência', btnClair: 'Claro', btnSombre: 'Escuro',
     sectionNotifications: 'Notificações', notifEmailLabel: 'Receber confirmações por e-mail',
-    notifSmsLabel: 'Receber lembretes por SMS', settingsSaved: 'Configurações salvas ✓'
+    notifSmsLabel: 'Receber lembretes por SMS', settingsSaved: 'Configurações salvas ✓',
+    authTabLogin: 'Entrar', authTabSignup: 'Cadastrar', authForgotTitle: 'Senha esquecida',
+    authForgotDesc: 'Informe seu e-mail, enviaremos um link de redefinição.', authSendLink: 'Enviar link',
+    authBackToLogin: 'Voltar ao login',
+    authResetSent: 'Se existir uma conta com este endereço, um link de redefinição acabou de ser enviado.',
+    authNamePlaceholder: 'Nome e sobrenome (ex: Julien Berthier)', authEmailPlaceholder: 'E-mail',
+    authPasswordPlaceholder: 'Senha', authConfirmPasswordPlaceholder: 'Confirmar senha',
+    authForgotLink: 'Esqueceu a senha?', authSubmitLogin: 'Entrar', authSubmitSignup: 'Criar minha conta',
+    authPrototypeNote: 'Versão protótipo — a autenticação ainda não está conectada a um banco de dados real.',
+    errFillAllFields: 'Por favor, preencha todos os campos.', errPasswordsMismatch: 'As senhas não coincidem.',
+    successAccountCreated: 'Conta criada! Verifique seu e-mail para confirmar seu endereço e depois faça login.',
+    errFillEmailPassword: 'Por favor, informe seu e-mail e senha.'
   }
 };
 const LOCALE_MAP = { Français: 'fr-FR', Anglais: 'en-US', Espagnol: 'es-ES', Italien: 'it-IT', Portugais: 'pt-PT' };
@@ -1515,6 +1570,7 @@ function AuthScreen({ onAuth }) {
   const [error, setError] = useState('');
   const [sentReset, setSentReset] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [authLangue, setAuthLangue] = useState('Français');
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
   const C = PALETTES.light;
   const inputStyle = { border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '10px 12px 10px 38px', fontSize: 14.5, fontFamily: 'Inter, sans-serif', color: C.ink, background: '#fff', width: '100%' };
@@ -1522,19 +1578,19 @@ function AuthScreen({ onAuth }) {
 
   const handleSubmit = async () => {
     if (mode === 'signup') {
-      if (!form.nom || !form.email || !form.password) { setError('Merci de remplir tous les champs.'); return; }
-      if (form.password !== form.confirm) { setError('Les mots de passe ne correspondent pas.'); return; }
+      if (!form.nom || !form.email || !form.password) { setError(tUI('errFillAllFields', authLangue)); return; }
+      if (form.password !== form.confirm) { setError(tUI('errPasswordsMismatch', authLangue)); return; }
       setError(''); setLoading(true);
       const { error: signUpError } = await supabase.auth.signUp({
         email: form.email, password: form.password, options: { data: { nom: form.nom } }
       });
       setLoading(false);
       if (signUpError) { setError(signUpError.message); return; }
-      setError('Compte créé ! Vérifie tes e-mails pour confirmer ton adresse, puis connecte-toi.');
+      setError(tUI('successAccountCreated', authLangue));
       setMode('login');
       return;
     } else if (mode === 'login') {
-      if (!form.email || !form.password) { setError('Merci de renseigner ton e-mail et ton mot de passe.'); return; }
+      if (!form.email || !form.password) { setError(tUI('errFillEmailPassword', authLangue)); return; }
       setError(''); setLoading(true);
       const { error: signInError } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
       setLoading(false);
@@ -1547,6 +1603,11 @@ function AuthScreen({ onAuth }) {
   return (
     <div style={{ minHeight: '100vh', background: C.snow, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: 'Inter, sans-serif' }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <select value={authLangue} onChange={e => setAuthLangue(e.target.value)} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 8, padding: '5px 8px', fontSize: 12.5, color: C.inkSoft, background: '#fff' }}>
+            <option>Français</option><option>Anglais</option><option>Espagnol</option><option>Italien</option><option>Portugais</option>
+          </select>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, marginBottom: 28, fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 20, color: C.navy }}>
           <span style={{ width: 20, height: 20, borderRadius: 5, background: `linear-gradient(135deg, ${ACCENTS.green} 33%, ${ACCENTS.blue} 33% 66%, #000 66%)` }} />
           SkiPro
@@ -1554,50 +1615,50 @@ function AuthScreen({ onAuth }) {
         <div style={{ background: '#fff', border: `1px solid ${C.iceLine}`, borderRadius: 18, padding: 28, boxShadow: '0 24px 60px -30px rgba(16,35,61,0.25)' }}>
           {mode !== 'forgot' && (
             <div style={{ display: 'flex', border: `1px solid ${C.iceLine}`, borderRadius: 9, overflow: 'hidden', marginBottom: 22 }}>
-              <button onClick={() => { setMode('login'); setError(''); }} style={{ flex: 1, padding: '9px 0', border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, background: mode === 'login' ? ACCENTS.glacier : '#fff', color: mode === 'login' ? '#fff' : C.ink }}>Connexion</button>
-              <button onClick={() => { setMode('signup'); setError(''); }} style={{ flex: 1, padding: '9px 0', border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, background: mode === 'signup' ? ACCENTS.glacier : '#fff', color: mode === 'signup' ? '#fff' : C.ink }}>Inscription</button>
+              <button onClick={() => { setMode('login'); setError(''); }} style={{ flex: 1, padding: '9px 0', border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, background: mode === 'login' ? ACCENTS.glacier : '#fff', color: mode === 'login' ? '#fff' : C.ink }}>{tUI('authTabLogin', authLangue)}</button>
+              <button onClick={() => { setMode('signup'); setError(''); }} style={{ flex: 1, padding: '9px 0', border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, background: mode === 'signup' ? ACCENTS.glacier : '#fff', color: mode === 'signup' ? '#fff' : C.ink }}>{tUI('authTabSignup', authLangue)}</button>
             </div>
           )}
 
           {mode === 'forgot' ? (
             sentReset ? (
               <div style={{ textAlign: 'center', padding: '10px 0' }}>
-                <div style={{ fontSize: 14, color: C.ink, marginBottom: 18 }}>Si un compte existe avec cette adresse, un lien de réinitialisation vient d'être envoyé.</div>
-                <button onClick={() => { setMode('login'); setSentReset(false); }} style={{ background: 'none', border: 'none', color: ACCENTS.glacierDeep, fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>Retour à la connexion</button>
+                <div style={{ fontSize: 14, color: C.ink, marginBottom: 18 }}>{tUI('authResetSent', authLangue)}</div>
+                <button onClick={() => { setMode('login'); setSentReset(false); }} style={{ background: 'none', border: 'none', color: ACCENTS.glacierDeep, fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{tUI('authBackToLogin', authLangue)}</button>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div>
-                  <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 17, color: C.navy, marginBottom: 4 }}>Mot de passe oublié</div>
-                  <div style={{ fontSize: 13, color: C.inkSoft }}>Indique ton e-mail, on t'enverra un lien de réinitialisation.</div>
+                  <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 17, color: C.navy, marginBottom: 4 }}>{tUI('authForgotTitle', authLangue)}</div>
+                  <div style={{ fontSize: 13, color: C.inkSoft }}>{tUI('authForgotDesc', authLangue)}</div>
                 </div>
-                {wrapField(<Mail size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input placeholder="E-mail" style={inputStyle} value={form.email} onChange={set('email')} />)}
-                <button onClick={async () => { await supabase.auth.resetPasswordForEmail(form.email); setSentReset(true); }} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Envoyer le lien</button>
-                <button onClick={() => setMode('login')} style={{ background: 'none', border: 'none', color: C.inkSoft, fontSize: 13, cursor: 'pointer' }}>← Retour à la connexion</button>
+                {wrapField(<Mail size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input placeholder={tUI('authEmailPlaceholder', authLangue)} style={inputStyle} value={form.email} onChange={set('email')} />)}
+                <button onClick={async () => { await supabase.auth.resetPasswordForEmail(form.email); setSentReset(true); }} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{tUI('authSendLink', authLangue)}</button>
+                <button onClick={() => setMode('login')} style={{ background: 'none', border: 'none', color: C.inkSoft, fontSize: 13, cursor: 'pointer' }}>← {tUI('authBackToLogin', authLangue)}</button>
               </div>
             )
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {mode === 'signup' && wrapField(<User size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input placeholder="Prénom et nom (ex: Julien Berthier)" style={inputStyle} value={form.nom} onChange={set('nom')} />)}
-              {wrapField(<Mail size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input placeholder="E-mail" style={inputStyle} value={form.email} onChange={set('email')} />)}
-              {wrapField(<Lock size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input type="password" placeholder="Mot de passe" style={inputStyle} value={form.password} onChange={set('password')} />)}
-              {mode === 'signup' && wrapField(<Lock size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input type="password" placeholder="Confirmer le mot de passe" style={inputStyle} value={form.confirm} onChange={set('confirm')} />)}
+              {mode === 'signup' && wrapField(<User size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input placeholder={tUI('authNamePlaceholder', authLangue)} style={inputStyle} value={form.nom} onChange={set('nom')} />)}
+              {wrapField(<Mail size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input placeholder={tUI('authEmailPlaceholder', authLangue)} style={inputStyle} value={form.email} onChange={set('email')} />)}
+              {wrapField(<Lock size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input type="password" placeholder={tUI('authPasswordPlaceholder', authLangue)} style={inputStyle} value={form.password} onChange={set('password')} />)}
+              {mode === 'signup' && wrapField(<Lock size={15} color={C.inkSoft} style={{ position: 'absolute', left: 12, top: 12 }} />, <input type="password" placeholder={tUI('authConfirmPasswordPlaceholder', authLangue)} style={inputStyle} value={form.confirm} onChange={set('confirm')} />)}
 
               {mode === 'login' && (
                 <div style={{ textAlign: 'right' }}>
-                  <button onClick={() => { setMode('forgot'); setError(''); }} style={{ background: 'none', border: 'none', color: ACCENTS.glacierDeep, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>Mot de passe oublié ?</button>
+                  <button onClick={() => { setMode('forgot'); setError(''); }} style={{ background: 'none', border: 'none', color: ACCENTS.glacierDeep, fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>{tUI('authForgotLink', authLangue)}</button>
                 </div>
               )}
 
               {error && <div style={{ fontSize: 12.5, color: ACCENTS.red, background: ACCENTS.red + '12', borderRadius: 8, padding: '9px 11px' }}>{error}</div>}
 
               <button onClick={handleSubmit} disabled={loading} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 14, fontWeight: 600, cursor: loading ? 'default' : 'pointer', marginTop: 4, opacity: loading ? 0.7 : 1 }}>
-                {loading ? 'Un instant...' : (mode === 'login' ? 'Se connecter' : 'Créer mon compte')}
+                {loading ? tUI('loadingWait', authLangue) : (mode === 'login' ? tUI('authSubmitLogin', authLangue) : tUI('authSubmitSignup', authLangue))}
               </button>
             </div>
           )}
         </div>
-        <p style={{ textAlign: 'center', fontSize: 11.5, color: C.inkSoft, marginTop: 16 }}>Version prototype — l'authentification n'est pas encore reliée à une vraie base de données.</p>
+        <p style={{ textAlign: 'center', fontSize: 11.5, color: C.inkSoft, marginTop: 16 }}>{tUI('authPrototypeNote', authLangue)}</p>
       </div>
     </div>
   );
