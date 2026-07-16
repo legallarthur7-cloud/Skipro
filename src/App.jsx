@@ -101,7 +101,13 @@ const UI_TRANSLATIONS = {
     documents: 'Documents', noDocuments: 'Aucun document pour ce client.',
     clientsInCrm: 'clients dans votre CRM', searchClient: 'Rechercher un client...',
     miniLessons: 'Cours', miniHours: 'Heures', miniSpent: 'Dépensé',
-    noClientsMatch: 'Aucun client ne correspond à votre recherche.'
+    noClientsMatch: 'Aucun client ne correspond à votre recherche.',
+    paymentsSubtitle: 'Suivi des encaissements, export comptable et factures clients', exportCsv: 'Exporter (CSV)',
+    kpiCollected: 'Encaissé', kpiPending: 'En attente', kpiTotalBilled: 'Total facturé',
+    tabPaymentsTracking: 'Suivi des paiements', tabInvoices: 'Factures',
+    thMontant: 'Montant', thMode: 'Mode', btnInvoice: 'Facture', btnConfirm: 'Confirmer',
+    deleteThisInvoice: 'Supprimer cette facture', searchClientInvoice: 'Rechercher un client, un n° de facture...',
+    noInvoicesMatch: 'Aucune facture ne correspond à votre recherche.'
   },
   Anglais: {
     dashboard: 'Dashboard', calendar: 'Calendar', reservations: 'Bookings',
@@ -138,7 +144,13 @@ const UI_TRANSLATIONS = {
     documents: 'Documents', noDocuments: 'No documents for this client.',
     clientsInCrm: 'clients in your CRM', searchClient: 'Search a client...',
     miniLessons: 'Lessons', miniHours: 'Hours', miniSpent: 'Spent',
-    noClientsMatch: 'No client matches your search.'
+    noClientsMatch: 'No client matches your search.',
+    paymentsSubtitle: 'Track payments, accounting export and client invoices', exportCsv: 'Export (CSV)',
+    kpiCollected: 'Collected', kpiPending: 'Pending', kpiTotalBilled: 'Total billed',
+    tabPaymentsTracking: 'Payment tracking', tabInvoices: 'Invoices',
+    thMontant: 'Amount', thMode: 'Method', btnInvoice: 'Invoice', btnConfirm: 'Confirm',
+    deleteThisInvoice: 'Delete this invoice', searchClientInvoice: 'Search a client, an invoice number...',
+    noInvoicesMatch: 'No invoice matches your search.'
   },
   Espagnol: {
     dashboard: 'Panel', calendar: 'Calendario', reservations: 'Reservas',
@@ -175,7 +187,13 @@ const UI_TRANSLATIONS = {
     documents: 'Documentos', noDocuments: 'Ningún documento para este cliente.',
     clientsInCrm: 'clientes en tu CRM', searchClient: 'Buscar un cliente...',
     miniLessons: 'Clases', miniHours: 'Horas', miniSpent: 'Gastado',
-    noClientsMatch: 'Ningún cliente coincide con tu búsqueda.'
+    noClientsMatch: 'Ningún cliente coincide con tu búsqueda.',
+    paymentsSubtitle: 'Seguimiento de cobros, exportación contable y facturas de clientes', exportCsv: 'Exportar (CSV)',
+    kpiCollected: 'Cobrado', kpiPending: 'Pendiente', kpiTotalBilled: 'Total facturado',
+    tabPaymentsTracking: 'Seguimiento de pagos', tabInvoices: 'Facturas',
+    thMontant: 'Importe', thMode: 'Método', btnInvoice: 'Factura', btnConfirm: 'Confirmar',
+    deleteThisInvoice: 'Eliminar esta factura', searchClientInvoice: 'Buscar un cliente, un número de factura...',
+    noInvoicesMatch: 'Ninguna factura coincide con tu búsqueda.'
   },
   Italien: {
     dashboard: 'Bacheca', calendar: 'Calendario', reservations: 'Prenotazioni',
@@ -212,7 +230,13 @@ const UI_TRANSLATIONS = {
     documents: 'Documenti', noDocuments: 'Nessun documento per questo cliente.',
     clientsInCrm: 'clienti nel tuo CRM', searchClient: 'Cerca un cliente...',
     miniLessons: 'Lezioni', miniHours: 'Ore', miniSpent: 'Speso',
-    noClientsMatch: 'Nessun cliente corrisponde alla tua ricerca.'
+    noClientsMatch: 'Nessun cliente corrisponde alla tua ricerca.',
+    paymentsSubtitle: 'Monitoraggio incassi, esportazione contabile e fatture clienti', exportCsv: 'Esporta (CSV)',
+    kpiCollected: 'Incassato', kpiPending: 'In sospeso', kpiTotalBilled: 'Totale fatturato',
+    tabPaymentsTracking: 'Monitoraggio pagamenti', tabInvoices: 'Fatture',
+    thMontant: 'Importo', thMode: 'Metodo', btnInvoice: 'Fattura', btnConfirm: 'Conferma',
+    deleteThisInvoice: 'Elimina questa fattura', searchClientInvoice: 'Cerca un cliente, un numero di fattura...',
+    noInvoicesMatch: 'Nessuna fattura corrisponde alla tua ricerca.'
   },
   Portugais: {
     dashboard: 'Painel', calendar: 'Calendário', reservations: 'Reservas',
@@ -249,7 +273,13 @@ const UI_TRANSLATIONS = {
     documents: 'Documentos', noDocuments: 'Nenhum documento para este cliente.',
     clientsInCrm: 'clientes no seu CRM', searchClient: 'Buscar um cliente...',
     miniLessons: 'Aulas', miniHours: 'Horas', miniSpent: 'Gasto',
-    noClientsMatch: 'Nenhum cliente corresponde à sua busca.'
+    noClientsMatch: 'Nenhum cliente corresponde à sua busca.',
+    paymentsSubtitle: 'Acompanhamento de recebimentos, exportação contábil e faturas de clientes', exportCsv: 'Exportar (CSV)',
+    kpiCollected: 'Recebido', kpiPending: 'Pendente', kpiTotalBilled: 'Total faturado',
+    tabPaymentsTracking: 'Acompanhamento de pagamentos', tabInvoices: 'Faturas',
+    thMontant: 'Valor', thMode: 'Método', btnInvoice: 'Fatura', btnConfirm: 'Confirmar',
+    deleteThisInvoice: 'Excluir esta fatura', searchClientInvoice: 'Buscar um cliente, um número de fatura...',
+    noInvoicesMatch: 'Nenhuma fatura corresponde à sua busca.'
   }
 };
 const LOCALE_MAP = { Français: 'fr-FR', Anglais: 'en-US', Espagnol: 'es-ES', Italien: 'it-IT', Portugais: 'pt-PT' };
@@ -1007,6 +1037,7 @@ function InvoiceModal({ reservation, onClose, C, devise, settings }) {
 }
 
 function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, subscribed }) {
+  const langue = settings.langue;
   const [invoiceFor, setInvoiceFor] = useState(null);
   const [subView, setSubView] = useState('paiements'); // 'paiements' | 'factures'
   const [search, setSearch] = useState('');
@@ -1031,25 +1062,25 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div className="header-row">
-        <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>Paiements &amp; Factures</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4 }}>Suivi des encaissements, export comptable et factures clients</p></div>
-        <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 8, background: C.card, border: `1px solid ${C.iceLine}`, color: C.ink, borderRadius: 9, padding: '10px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}><Download size={15} /> Exporter (CSV)</button>
+        <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>{tUI('paiements', langue)}</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4 }}>{tUI('paymentsSubtitle', langue)}</p></div>
+        <button onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: 8, background: C.card, border: `1px solid ${C.iceLine}`, color: C.ink, borderRadius: 9, padding: '10px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}><Download size={15} /> {tUI('exportCsv', langue)}</button>
       </div>
       <BlurGate subscribed={subscribed} C={C}>
       <div className="kpi-grid-3">
-        <KpiCard C={C} label="Encaissé" value={fmtEUR(encaisse, devise)} icon={Euro} accent={ACCENTS.green} />
-        <KpiCard C={C} label="En attente" value={fmtEUR(enAttente, devise)} icon={Euro} accent={ACCENTS.amber} />
-        <KpiCard C={C} label="Total facturé" value={fmtEUR(encaisse + enAttente, devise)} icon={Euro} accent={C.navy} />
+        <KpiCard C={C} label={tUI('kpiCollected', langue)} value={fmtEUR(encaisse, devise)} icon={Euro} accent={ACCENTS.green} />
+        <KpiCard C={C} label={tUI('kpiPending', langue)} value={fmtEUR(enAttente, devise)} icon={Euro} accent={ACCENTS.amber} />
+        <KpiCard C={C} label={tUI('kpiTotalBilled', langue)} value={fmtEUR(encaisse + enAttente, devise)} icon={Euro} accent={C.navy} />
       </div>
 
       <div style={{ display: 'flex', border: `1px solid ${C.iceLine}`, borderRadius: 9, overflow: 'hidden', width: 'fit-content' }}>
-        <button onClick={() => setSubView('paiements')} style={{ padding: '9px 18px', border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, background: subView === 'paiements' ? ACCENTS.glacier : C.card, color: subView === 'paiements' ? '#fff' : C.ink }}>Suivi des paiements</button>
-        <button onClick={() => setSubView('factures')} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, background: subView === 'factures' ? ACCENTS.glacier : C.card, color: subView === 'factures' ? '#fff' : C.ink }}><FileText size={14} /> Factures ({sorted.length})</button>
+        <button onClick={() => setSubView('paiements')} style={{ padding: '9px 18px', border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, background: subView === 'paiements' ? ACCENTS.glacier : C.card, color: subView === 'paiements' ? '#fff' : C.ink }}>{tUI('tabPaymentsTracking', langue)}</button>
+        <button onClick={() => setSubView('factures')} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 18px', border: 'none', cursor: 'pointer', fontSize: 13.5, fontWeight: 600, background: subView === 'factures' ? ACCENTS.glacier : C.card, color: subView === 'factures' ? '#fff' : C.ink }}><FileText size={14} /> {tUI('tabInvoices', langue)} ({sorted.length})</button>
       </div>
 
       {subView === 'paiements' ? (
         <div style={{ background: C.card, border: `1px solid ${C.iceLine}`, borderRadius: 14, overflow: 'hidden', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead><tr><th style={th}>Client</th><th style={th}>Date</th><th style={th}>Montant</th><th style={th}>Statut</th><th style={th}>Mode</th><th style={th}></th><th style={th}></th></tr></thead>
+            <thead><tr><th style={th}>{tUI('thClient', langue)}</th><th style={th}>{tUI('fDate', langue)}</th><th style={th}>{tUI('thMontant', langue)}</th><th style={th}>{tUI('fStatut', langue)}</th><th style={th}>{tUI('thMode', langue)}</th><th style={th}></th><th style={th}></th></tr></thead>
             <tbody>
               {sorted.map(r => (
                 <tr key={r.id}>
@@ -1058,16 +1089,16 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, 
                   <td style={td}><Pill color={r.paiement === 'Payé' ? ACCENTS.green : C.inkSoft}>{r.paiement}</Pill></td>
                   <td style={td}><select value={r.modePaiement || 'Non renseigné'} onChange={e => { const modePaiement = e.target.value; onUpdate({ ...r, modePaiement, paiement: modePaiement === 'Non renseigné' ? 'Non payé' : 'Payé' }); }} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 7, padding: '5px 8px', fontSize: 12.5, color: C.inkSoft, fontWeight: 600, background: C.card }}>{MODES_PAIEMENT.map(m => <option key={m}>{m}</option>)}</select></td>
                   <td style={{ ...td, textAlign: 'right' }}>
-                    <button onClick={() => setInvoiceFor(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: ACCENTS.glacier + '15', border: 'none', color: ACCENTS.glacierDeep, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, padding: '6px 12px', borderRadius: 7 }}><FileText size={13} /> Facture</button>
+                    <button onClick={() => setInvoiceFor(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: ACCENTS.glacier + '15', border: 'none', color: ACCENTS.glacierDeep, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, padding: '6px 12px', borderRadius: 7 }}><FileText size={13} /> {tUI('btnInvoice', langue)}</button>
                   </td>
                   <td style={{ ...td, textAlign: 'right' }}>
                     {confirmDeleteId === r.id ? (
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                        <button onClick={() => handleDeleteClick(r.id)} style={{ background: ACCENTS.red, border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700, padding: '6px 10px', borderRadius: 7 }}>Confirmer</button>
-                        <button onClick={() => setConfirmDeleteId(null)} style={{ background: 'none', border: `1px solid ${C.iceLine}`, color: C.ink, cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '6px 10px', borderRadius: 7 }}>Annuler</button>
+                        <button onClick={() => handleDeleteClick(r.id)} style={{ background: ACCENTS.red, border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700, padding: '6px 10px', borderRadius: 7 }}>{tUI('btnConfirm', langue)}</button>
+                        <button onClick={() => setConfirmDeleteId(null)} style={{ background: 'none', border: `1px solid ${C.iceLine}`, color: C.ink, cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '6px 10px', borderRadius: 7 }}>{tUI('btnCancel', langue)}</button>
                       </div>
                     ) : (
-                      <button onClick={() => handleDeleteClick(r.id)} title="Supprimer cette facture" style={{ background: 'none', border: 'none', color: C.inkSoft, cursor: 'pointer', padding: 6 }}><Trash2 size={15} /></button>
+                      <button onClick={() => handleDeleteClick(r.id)} title={tUI('deleteThisInvoice', langue)} style={{ background: 'none', border: 'none', color: C.inkSoft, cursor: 'pointer', padding: 6 }}><Trash2 size={15} /></button>
                     )}
                   </td>
                 </tr>
@@ -1079,7 +1110,7 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ position: 'relative', maxWidth: 360 }}>
             <Search size={15} style={{ position: 'absolute', left: 12, top: 11, color: C.inkSoft }} />
-            <input placeholder="Rechercher un client, un n° de facture..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: '100%', border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '9px 14px 9px 34px', fontSize: 14, background: C.card, color: C.ink }} />
+            <input placeholder={tUI('searchClientInvoice', langue)} value={search} onChange={e => setSearch(e.target.value)} style={{ width: '100%', border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '9px 14px 9px 34px', fontSize: 14, background: C.card, color: C.ink }} />
           </div>
           <div className="clients-grid">
             {factures.map(r => (
@@ -1098,17 +1129,17 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, 
                     <button onClick={() => setInvoiceFor(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: ACCENTS.glacier, border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 8 }}><Printer size={13} /> Voir</button>
                     {confirmDeleteId === r.id ? (
                       <>
-                        <button onClick={() => handleDeleteClick(r.id)} style={{ background: ACCENTS.red, border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700, padding: '7px 10px', borderRadius: 8 }}>Confirmer</button>
-                        <button onClick={() => setConfirmDeleteId(null)} style={{ background: 'none', border: `1px solid ${C.iceLine}`, color: C.ink, cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '7px 10px', borderRadius: 8 }}>Annuler</button>
+                        <button onClick={() => handleDeleteClick(r.id)} style={{ background: ACCENTS.red, border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700, padding: '7px 10px', borderRadius: 8 }}>{tUI('btnConfirm', langue)}</button>
+                        <button onClick={() => setConfirmDeleteId(null)} style={{ background: 'none', border: `1px solid ${C.iceLine}`, color: C.ink, cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '7px 10px', borderRadius: 8 }}>{tUI('btnCancel', langue)}</button>
                       </>
                     ) : (
-                      <button onClick={() => handleDeleteClick(r.id)} title="Supprimer cette facture" style={{ background: 'none', border: `1px solid ${C.iceLine}`, color: C.inkSoft, cursor: 'pointer', padding: '7px 9px', borderRadius: 8 }}><Trash2 size={13} /></button>
+                      <button onClick={() => handleDeleteClick(r.id)} title={tUI('deleteThisInvoice', langue)} style={{ background: 'none', border: `1px solid ${C.iceLine}`, color: C.inkSoft, cursor: 'pointer', padding: '7px 9px', borderRadius: 8 }}><Trash2 size={13} /></button>
                     )}
                   </div>
                 </div>
               </div>
             ))}
-            {factures.length === 0 && <div style={{ color: C.inkSoft, fontSize: 14 }}>Aucune facture ne correspond à votre recherche.</div>}
+            {factures.length === 0 && <div style={{ color: C.inkSoft, fontSize: 14 }}>{tUI('noInvoicesMatch', langue)}</div>}
           </div>
         </div>
       )}
