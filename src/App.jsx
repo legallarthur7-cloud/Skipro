@@ -107,7 +107,11 @@ const UI_TRANSLATIONS = {
     tabPaymentsTracking: 'Suivi des paiements', tabInvoices: 'Factures',
     thMontant: 'Montant', thMode: 'Mode', btnInvoice: 'Facture', btnConfirm: 'Confirmer',
     deleteThisInvoice: 'Supprimer cette facture', searchClientInvoice: 'Rechercher un client, un n° de facture...',
-    noInvoicesMatch: 'Aucune facture ne correspond à votre recherche.'
+    noInvoicesMatch: 'Aucune facture ne correspond à votre recherche.',
+    statsSubtitle: "Vue d'ensemble de votre activité", kpiHoursTaught: 'Heures enseignées',
+    kpiLessonsGiven: 'Cours réalisés', kpiAvgRevenueHour: 'Revenu moyen / heure', kpiAvgRevenueClient: 'Revenu moyen / client',
+    kpiCancelRate: "Taux d'annulation", kpiRetentionRate: 'Taux de fidélisation', retentionSub: 'clients avec 2+ cours',
+    kpiTotalRevenue: 'Revenu total', chartNationalities: 'Nationalités des clients', chartTopResorts: 'Stations les plus fréquentées'
   },
   Anglais: {
     dashboard: 'Dashboard', calendar: 'Calendar', reservations: 'Bookings',
@@ -150,7 +154,11 @@ const UI_TRANSLATIONS = {
     tabPaymentsTracking: 'Payment tracking', tabInvoices: 'Invoices',
     thMontant: 'Amount', thMode: 'Method', btnInvoice: 'Invoice', btnConfirm: 'Confirm',
     deleteThisInvoice: 'Delete this invoice', searchClientInvoice: 'Search a client, an invoice number...',
-    noInvoicesMatch: 'No invoice matches your search.'
+    noInvoicesMatch: 'No invoice matches your search.',
+    statsSubtitle: 'Overview of your activity', kpiHoursTaught: 'Hours taught',
+    kpiLessonsGiven: 'Lessons given', kpiAvgRevenueHour: 'Average revenue / hour', kpiAvgRevenueClient: 'Average revenue / client',
+    kpiCancelRate: 'Cancellation rate', kpiRetentionRate: 'Retention rate', retentionSub: 'clients with 2+ lessons',
+    kpiTotalRevenue: 'Total revenue', chartNationalities: 'Client nationalities', chartTopResorts: 'Most visited resorts'
   },
   Espagnol: {
     dashboard: 'Panel', calendar: 'Calendario', reservations: 'Reservas',
@@ -193,7 +201,11 @@ const UI_TRANSLATIONS = {
     tabPaymentsTracking: 'Seguimiento de pagos', tabInvoices: 'Facturas',
     thMontant: 'Importe', thMode: 'Método', btnInvoice: 'Factura', btnConfirm: 'Confirmar',
     deleteThisInvoice: 'Eliminar esta factura', searchClientInvoice: 'Buscar un cliente, un número de factura...',
-    noInvoicesMatch: 'Ninguna factura coincide con tu búsqueda.'
+    noInvoicesMatch: 'Ninguna factura coincide con tu búsqueda.',
+    statsSubtitle: 'Resumen de tu actividad', kpiHoursTaught: 'Horas impartidas',
+    kpiLessonsGiven: 'Clases realizadas', kpiAvgRevenueHour: 'Ingreso medio / hora', kpiAvgRevenueClient: 'Ingreso medio / cliente',
+    kpiCancelRate: 'Tasa de cancelación', kpiRetentionRate: 'Tasa de fidelización', retentionSub: 'clientes con 2+ clases',
+    kpiTotalRevenue: 'Ingreso total', chartNationalities: 'Nacionalidades de los clientes', chartTopResorts: 'Estaciones más frecuentadas'
   },
   Italien: {
     dashboard: 'Bacheca', calendar: 'Calendario', reservations: 'Prenotazioni',
@@ -236,7 +248,11 @@ const UI_TRANSLATIONS = {
     tabPaymentsTracking: 'Monitoraggio pagamenti', tabInvoices: 'Fatture',
     thMontant: 'Importo', thMode: 'Metodo', btnInvoice: 'Fattura', btnConfirm: 'Conferma',
     deleteThisInvoice: 'Elimina questa fattura', searchClientInvoice: 'Cerca un cliente, un numero di fattura...',
-    noInvoicesMatch: 'Nessuna fattura corrisponde alla tua ricerca.'
+    noInvoicesMatch: 'Nessuna fattura corrisponde alla tua ricerca.',
+    statsSubtitle: 'Panoramica della tua attività', kpiHoursTaught: 'Ore insegnate',
+    kpiLessonsGiven: 'Lezioni svolte', kpiAvgRevenueHour: 'Ricavo medio / ora', kpiAvgRevenueClient: 'Ricavo medio / cliente',
+    kpiCancelRate: 'Tasso di cancellazione', kpiRetentionRate: 'Tasso di fidelizzazione', retentionSub: 'clienti con 2+ lezioni',
+    kpiTotalRevenue: 'Ricavo totale', chartNationalities: 'Nazionalità dei clienti', chartTopResorts: 'Stazioni più frequentate'
   },
   Portugais: {
     dashboard: 'Painel', calendar: 'Calendário', reservations: 'Reservas',
@@ -279,7 +295,11 @@ const UI_TRANSLATIONS = {
     tabPaymentsTracking: 'Acompanhamento de pagamentos', tabInvoices: 'Faturas',
     thMontant: 'Valor', thMode: 'Método', btnInvoice: 'Fatura', btnConfirm: 'Confirmar',
     deleteThisInvoice: 'Excluir esta fatura', searchClientInvoice: 'Buscar um cliente, um número de fatura...',
-    noInvoicesMatch: 'Nenhuma fatura corresponde à sua busca.'
+    noInvoicesMatch: 'Nenhuma fatura corresponde à sua busca.',
+    statsSubtitle: 'Visão geral da sua atividade', kpiHoursTaught: 'Horas ministradas',
+    kpiLessonsGiven: 'Aulas realizadas', kpiAvgRevenueHour: 'Receita média / hora', kpiAvgRevenueClient: 'Receita média / cliente',
+    kpiCancelRate: 'Taxa de cancelamento', kpiRetentionRate: 'Taxa de fidelização', retentionSub: 'clientes com 2+ aulas',
+    kpiTotalRevenue: 'Receita total', chartNationalities: 'Nacionalidades dos clientes', chartTopResorts: 'Estações mais frequentadas'
   }
 };
 const LOCALE_MAP = { Français: 'fr-FR', Anglais: 'en-US', Espagnol: 'es-ES', Italien: 'it-IT', Portugais: 'pt-PT' };
@@ -1153,7 +1173,7 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, 
 /* ==================================================================================
    STATISTIQUES
    ================================================================================== */
-function StatsView({ reservations, C, devise, subscribed }) {
+function StatsView({ reservations, C, devise, subscribed, langue }) {
   const active = reservations.filter(r => r.statut !== 'Annulée');
   const clients = aggregateClients(reservations);
   const totalHeures = active.reduce((s, r) => s + (timeToMinutes(r.heureFin) - timeToMinutes(r.heureDebut)) / 60, 0);
@@ -1169,23 +1189,23 @@ function StatsView({ reservations, C, devise, subscribed }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>Statistiques</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4 }}>Vue d'ensemble de votre activité</p></div>
+      <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>{tUI('stats', langue)}</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4 }}>{tUI('statsSubtitle', langue)}</p></div>
       <BlurGate subscribed={subscribed} C={C}>
       <div className="kpi-grid-4">
-        <KpiCard C={C} label="Heures enseignées" value={`${totalHeures.toFixed(0)}h`} icon={TrendingUp} accent={ACCENTS.blue} />
-        <KpiCard C={C} label="Cours réalisés" value={active.length} icon={Repeat} accent={ACCENTS.green} />
-        <KpiCard C={C} label="Clients" value={clients.length} icon={Users} accent={ACCENTS.amber} />
-        <KpiCard C={C} label="Revenu moyen / heure" value={fmtEUR(revenuMoyenHeure, devise)} icon={Euro} accent={C.navy} />
+        <KpiCard C={C} label={tUI('kpiHoursTaught', langue)} value={`${totalHeures.toFixed(0)}h`} icon={TrendingUp} accent={ACCENTS.blue} />
+        <KpiCard C={C} label={tUI('kpiLessonsGiven', langue)} value={active.length} icon={Repeat} accent={ACCENTS.green} />
+        <KpiCard C={C} label={tUI('clients', langue)} value={clients.length} icon={Users} accent={ACCENTS.amber} />
+        <KpiCard C={C} label={tUI('kpiAvgRevenueHour', langue)} value={fmtEUR(revenuMoyenHeure, devise)} icon={Euro} accent={C.navy} />
       </div>
       <div className="kpi-grid-4">
-        <KpiCard C={C} label="Revenu moyen / client" value={fmtEUR(revenuMoyenClient, devise)} icon={Euro} accent={ACCENTS.blue} />
-        <KpiCard C={C} label="Taux d'annulation" value={`${tauxAnnulation.toFixed(0)}%`} icon={TrendingDown} accent={ACCENTS.red} />
-        <KpiCard C={C} label="Taux de fidélisation" value={`${tauxFidelisation.toFixed(0)}%`} sub="clients avec 2+ cours" icon={Repeat} accent={ACCENTS.green} />
-        <KpiCard C={C} label="Revenu total" value={fmtEUR(totalRevenu, devise)} icon={Euro} accent={ACCENTS.amber} />
+        <KpiCard C={C} label={tUI('kpiAvgRevenueClient', langue)} value={fmtEUR(revenuMoyenClient, devise)} icon={Euro} accent={ACCENTS.blue} />
+        <KpiCard C={C} label={tUI('kpiCancelRate', langue)} value={`${tauxAnnulation.toFixed(0)}%`} icon={TrendingDown} accent={ACCENTS.red} />
+        <KpiCard C={C} label={tUI('kpiRetentionRate', langue)} value={`${tauxFidelisation.toFixed(0)}%`} sub={tUI('retentionSub', langue)} icon={Repeat} accent={ACCENTS.green} />
+        <KpiCard C={C} label={tUI('kpiTotalRevenue', langue)} value={fmtEUR(totalRevenu, devise)} icon={Euro} accent={ACCENTS.amber} />
       </div>
       <div className="two-col">
         <div style={{ background: C.card, border: `1px solid ${C.iceLine}`, borderRadius: 14, padding: '20px 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: C.navy, marginBottom: 14 }}><Globe2 size={15} /> Nationalités des clients</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: C.navy, marginBottom: 14 }}><Globe2 size={15} /> {tUI('chartNationalities', langue)}</div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={natData} layout="vertical" margin={{ left: 10 }}>
               <CartesianGrid stroke={C.ice} horizontal={false} />
@@ -1197,7 +1217,7 @@ function StatsView({ reservations, C, devise, subscribed }) {
           </ResponsiveContainer>
         </div>
         <div style={{ background: C.card, border: `1px solid ${C.iceLine}`, borderRadius: 14, padding: '20px 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: C.navy, marginBottom: 14 }}><MapPin size={15} /> Stations les plus fréquentées</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: C.navy, marginBottom: 14 }}><MapPin size={15} /> {tUI('chartTopResorts', langue)}</div>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={stationData}>
               <CartesianGrid stroke={C.ice} vertical={false} />
@@ -1652,7 +1672,7 @@ export default function App() {
         ) : tab === 'paiements' ? (
           <PaiementsView reservations={reservations} onUpdate={handleUpdate} onDelete={handleDelete} C={C} devise={settings.devise} settings={settings} subscribed={subscribed} />
         ) : tab === 'stats' ? (
-          <StatsView reservations={reservations} C={C} devise={settings.devise} subscribed={subscribed} />
+          <StatsView reservations={reservations} C={C} devise={settings.devise} subscribed={subscribed} langue={settings.langue} />
         ) : (
           <ParametresView settings={settings} onSave={handleSaveSettings} C={C} subscribed={subscribed} />
         )}
