@@ -139,7 +139,8 @@ const UI_TRANSLATIONS = {
     authPrototypeNote: "Version prototype — l'authentification n'est pas encore reliée à une vraie base de données.",
     errFillAllFields: 'Merci de remplir tous les champs.', errPasswordsMismatch: 'Les mots de passe ne correspondent pas.',
     successAccountCreated: 'Compte créé ! Vérifie tes e-mails pour confirmer ton adresse, puis connecte-toi.',
-    errFillEmailPassword: 'Merci de renseigner ton e-mail et ton mot de passe.', loadingText: 'Chargement…'
+    errFillEmailPassword: 'Merci de renseigner ton e-mail et ton mot de passe.', loadingText: 'Chargement…',
+    btnManageSubscription: 'Gérer mon abonnement', errPortalUnavailable: "Impossible d'ouvrir la gestion de l'abonnement pour le moment."
   },
   Anglais: {
     dashboard: 'Dashboard', calendar: 'Calendar', reservations: 'Bookings',
@@ -214,7 +215,8 @@ const UI_TRANSLATIONS = {
     authPrototypeNote: 'Prototype version — authentication is not yet connected to a real database.',
     errFillAllFields: 'Please fill in all fields.', errPasswordsMismatch: 'Passwords do not match.',
     successAccountCreated: 'Account created! Check your email to confirm your address, then log in.',
-    errFillEmailPassword: 'Please enter your email and password.', loadingText: 'Loading…'
+    errFillEmailPassword: 'Please enter your email and password.', loadingText: 'Loading…',
+    btnManageSubscription: 'Manage subscription', errPortalUnavailable: 'Unable to open subscription management right now.'
   },
   Espagnol: {
     dashboard: 'Panel', calendar: 'Calendario', reservations: 'Reservas',
@@ -289,7 +291,8 @@ const UI_TRANSLATIONS = {
     authPrototypeNote: 'Versión prototipo: la autenticación aún no está conectada a una base de datos real.',
     errFillAllFields: 'Por favor completa todos los campos.', errPasswordsMismatch: 'Las contraseñas no coinciden.',
     successAccountCreated: '¡Cuenta creada! Revisa tu correo para confirmar tu dirección y luego inicia sesión.',
-    errFillEmailPassword: 'Por favor ingresa tu correo y contraseña.', loadingText: 'Cargando…'
+    errFillEmailPassword: 'Por favor ingresa tu correo y contraseña.', loadingText: 'Cargando…',
+    btnManageSubscription: 'Gestionar suscripción', errPortalUnavailable: 'No se puede abrir la gestión de la suscripción en este momento.'
   },
   Italien: {
     dashboard: 'Bacheca', calendar: 'Calendario', reservations: 'Prenotazioni',
@@ -364,7 +367,8 @@ const UI_TRANSLATIONS = {
     authPrototypeNote: "Versione prototipo: l'autenticazione non è ancora collegata a un vero database.",
     errFillAllFields: 'Compila tutti i campi, per favore.', errPasswordsMismatch: 'Le password non corrispondono.',
     successAccountCreated: 'Account creato! Controlla la tua e-mail per confermare il tuo indirizzo, poi accedi.',
-    errFillEmailPassword: 'Inserisci la tua e-mail e password.', loadingText: 'Caricamento…'
+    errFillEmailPassword: 'Inserisci la tua e-mail e password.', loadingText: 'Caricamento…',
+    btnManageSubscription: 'Gestisci abbonamento', errPortalUnavailable: "Impossibile aprire la gestione dell'abbonamento al momento."
   },
   Portugais: {
     dashboard: 'Painel', calendar: 'Calendário', reservations: 'Reservas',
@@ -439,7 +443,8 @@ const UI_TRANSLATIONS = {
     authPrototypeNote: 'Versão protótipo — a autenticação ainda não está conectada a um banco de dados real.',
     errFillAllFields: 'Por favor, preencha todos os campos.', errPasswordsMismatch: 'As senhas não coincidem.',
     successAccountCreated: 'Conta criada! Verifique seu e-mail para confirmar seu endereço e depois faça login.',
-    errFillEmailPassword: 'Por favor, informe seu e-mail e senha.', loadingText: 'Carregando…'
+    errFillEmailPassword: 'Por favor, informe seu e-mail e senha.', loadingText: 'Carregando…',
+    btnManageSubscription: 'Gerenciar assinatura', errPortalUnavailable: 'Não foi possível abrir o gerenciamento da assinatura no momento.'
   }
 };
 const LOCALE_MAP = { Français: 'fr-FR', Anglais: 'en-US', Espagnol: 'es-ES', Italien: 'it-IT', Portugais: 'pt-PT' };
@@ -1450,6 +1455,7 @@ function ParametresView({ settings, onSave, C, subscribed }) {
   const [form, setForm] = useState(settings);
   const [saved, setSaved] = useState(false);
   const [subLoading, setSubLoading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubscribe = async () => {
@@ -1467,6 +1473,23 @@ function ParametresView({ settings, onSave, C, subscribed }) {
     } catch (e) {
       alert('Erreur de connexion à Stripe.');
       setSubLoading(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const res = await fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else { alert(tUI('errPortalUnavailable', langue)); setPortalLoading(false); }
+    } catch (e) {
+      alert(tUI('errPortalUnavailable', langue));
+      setPortalLoading(false);
     }
   };
   const toggleJour = (j) => setForm(f => ({ ...f, joursRepos: f.joursRepos.includes(j) ? f.joursRepos.filter(x => x !== j) : [...f.joursRepos, j] }));
@@ -1493,8 +1516,13 @@ function ParametresView({ settings, onSave, C, subscribed }) {
             <div style={{ fontSize: 13, color: C.inkSoft, marginTop: 2 }}>{tUI('subscriptionDesc', langue)}</div>
           </div>
           {subscribed ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#E6F4EA', color: '#1E7A3D', borderRadius: 9, padding: '11px 18px', fontSize: 14, fontWeight: 600 }}>
-              ✓ {tUI('activeSubscription', langue)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#E6F4EA', color: '#1E7A3D', borderRadius: 9, padding: '11px 18px', fontSize: 14, fontWeight: 600 }}>
+                ✓ {tUI('activeSubscription', langue)}
+              </div>
+              <button onClick={handleManageSubscription} disabled={portalLoading} style={{ background: 'none', border: `1px solid ${C.iceLine}`, color: C.ink, borderRadius: 9, padding: '11px 18px', fontSize: 14, fontWeight: 600, cursor: portalLoading ? 'default' : 'pointer', opacity: portalLoading ? 0.7 : 1 }}>
+                {portalLoading ? tUI('loadingWait', langue) : tUI('btnManageSubscription', langue)}
+              </button>
             </div>
           ) : (
             <button onClick={handleSubscribe} disabled={subLoading} style={{ background: '#2E6F8E', color: '#fff', border: 'none', borderRadius: 9, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: subLoading ? 'default' : 'pointer', opacity: subLoading ? 0.7 : 1 }}>
