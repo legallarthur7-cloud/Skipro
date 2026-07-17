@@ -484,6 +484,29 @@ const VALUE_TRANSLATIONS = {
 function tVal(category, value, langue) {
   return (VALUE_TRANSLATIONS[category] && VALUE_TRANSLATIONS[category][value] && VALUE_TRANSLATIONS[category][value][langue]) || value;
 }
+const INVOICE_TRANSLATIONS = {
+  Français: { invoiceNoLabel: 'FACTURE n°', totalTTC: 'TOTAL TTC', vatMention: 'TVA non applicable, article 293 B du CGI', paidDirectly: 'Réglé en direct', bankStatement: "Relevé d'Identité Bancaire", accountHolder: 'Titulaire du compte', bankLabel: 'Banque' },
+  Anglais: { invoiceNoLabel: 'INVOICE No.', totalTTC: 'TOTAL (incl. VAT)', vatMention: 'VAT not applicable — French Tax Code, article 293 B (CGI)', paidDirectly: 'Paid directly', bankStatement: 'Bank Account Details', accountHolder: 'Account holder', bankLabel: 'Bank' },
+  Espagnol: { invoiceNoLabel: 'FACTURA n.º', totalTTC: 'TOTAL (IVA incl.)', vatMention: 'IVA no aplicable — Código Tributario francés, artículo 293 B (CGI)', paidDirectly: 'Pagado directamente', bankStatement: 'Datos de la cuenta bancaria', accountHolder: 'Titular de la cuenta', bankLabel: 'Banco' },
+  Italien: { invoiceNoLabel: 'FATTURA n.', totalTTC: 'TOTALE (IVA incl.)', vatMention: 'IVA non applicabile — Codice Tributario francese, articolo 293 B (CGI)', paidDirectly: 'Pagato direttamente', bankStatement: 'Dati del conto bancario', accountHolder: 'Titolare del conto', bankLabel: 'Banca' },
+  Portugais: { invoiceNoLabel: 'FATURA n.º', totalTTC: 'TOTAL (IVA incl.)', vatMention: 'IVA não aplicável — Código Tributário francês, artigo 293 B (CGI)', paidDirectly: 'Pago diretamente', bankStatement: 'Dados da conta bancária', accountHolder: 'Titular da conta', bankLabel: 'Banco' }
+};
+function tInv(key, langue) {
+  return (INVOICE_TRANSLATIONS[langue] && INVOICE_TRANSLATIONS[langue][key]) || INVOICE_TRANSLATIONS['Français'][key] || key;
+}
+function invoiceLessonLine(r, langue) {
+  const disc = r.discipline;
+  const station = r.station || '';
+  const dateStr = fmtDateShort(r.date);
+  const time = `${fmtHeure(r.heureDebut, langue)}–${fmtHeure(r.heureFin, langue)}`;
+  switch (langue) {
+    case 'Anglais': return `${disc} lesson at ${station} — ${dateStr} (${time})`;
+    case 'Espagnol': return `Clase de ${disc.toLowerCase()} en ${station} — ${dateStr} (${time})`;
+    case 'Italien': return `Lezione di ${disc.toLowerCase()} a ${station} — ${dateStr} (${time})`;
+    case 'Portugais': return `Aula de ${disc.toLowerCase()} em ${station} — ${dateStr} (${time})`;
+    default: return `Cours de ${disc.toLowerCase()} à ${station} — ${dateStr} (${time})`;
+  }
+}
 function tUI(key, langue) {
   return (UI_TRANSLATIONS[langue] && UI_TRANSLATIONS[langue][key]) || UI_TRANSLATIONS['Français'][key] || key;
 }
@@ -1180,7 +1203,7 @@ function ClientsView({ reservations, C, devise, subscribed, langue }) {
 function InvoiceModal({ reservation, onClose, C, devise, settings }) {
   const langue = settings.langue;
   const invoiceNumber = `${String(reservation.id).slice(-6)}${new Date(reservation.date).getFullYear()}`;
-  const todayStr = new Date().toLocaleDateString('fr-FR');
+  const todayStr = new Date().toLocaleDateString(LOCALE_MAP[langue] || 'fr-FR');
   const hasBank = settings.iban || settings.bic || settings.banque;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,18,27,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 20 }} onClick={onClose}>
@@ -1197,30 +1220,30 @@ function InvoiceModal({ reservation, onClose, C, devise, settings }) {
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 15, color: '#10233D' }}>INVOICE n°{invoiceNumber}</div>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 15, color: '#10233D' }}>{tInv('invoiceNoLabel', langue)}{invoiceNumber}</div>
           <div style={{ fontSize: 13.5, fontWeight: 700, color: '#16232F', marginTop: 4 }}>{reservation.prenom} {reservation.nom}</div>
         </div>
 
         <div style={{ fontSize: 13.5, marginBottom: 10 }}>
-          Cours de {reservation.discipline.toLowerCase()} à {reservation.station || ''} — {fmtDateShort(reservation.date)} ({fmtHeure(reservation.heureDebut, langue)}–{fmtHeure(reservation.heureFin, langue)})
+          {invoiceLessonLine(reservation, langue)}
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 18, marginBottom: 6 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#10233D' }}>TOTAL TTC : {fmtEUR(reservation.prix, devise)}</div>
-          <div style={{ fontSize: 12, fontStyle: 'italic', color: '#5A6B7A', marginTop: 4 }}>TVA non applicable, article 293 B du CGI</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#10233D' }}>{tInv('totalTTC', langue)} : {fmtEUR(reservation.prix, devise)}</div>
+          <div style={{ fontSize: 12, fontStyle: 'italic', color: '#5A6B7A', marginTop: 4 }}>{tInv('vatMention', langue)}</div>
         </div>
 
         {reservation.modePaiement && reservation.modePaiement !== 'Non renseigné' && (
-          <div style={{ fontSize: 12.5, color: '#5A6B7A', textAlign: 'center', marginTop: 14 }}>Réglé en direct — {reservation.modePaiement}</div>
+          <div style={{ fontSize: 12.5, color: '#5A6B7A', textAlign: 'center', marginTop: 14 }}>{tInv('paidDirectly', langue)} — {tVal('modePaiement', reservation.modePaiement, langue)}</div>
         )}
 
         {hasBank && (
           <div style={{ marginTop: 26, paddingTop: 18, borderTop: `1px solid #D3DEE6`, fontSize: 12, color: '#5A6B7A', lineHeight: 1.7 }}>
-            <div style={{ fontWeight: 700, color: '#16232F', marginBottom: 6 }}>Relevé d'Identité Bancaire</div>
-            <div>Titulaire du compte : {settings.nom}</div>
+            <div style={{ fontWeight: 700, color: '#16232F', marginBottom: 6 }}>{tInv('bankStatement', langue)}</div>
+            <div>{tInv('accountHolder', langue)} : {settings.nom}</div>
             {settings.iban && <div>IBAN : {settings.iban}</div>}
             {settings.bic && <div>BIC : {settings.bic}</div>}
-            {settings.banque && <div>Banque : {settings.banque}</div>}
+            {settings.banque && <div>{tInv('bankLabel', langue)} : {settings.banque}</div>}
           </div>
         )}
 
