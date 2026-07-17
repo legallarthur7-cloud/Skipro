@@ -450,6 +450,16 @@ const DAYS_SHORT_MAP = {
   Italien: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'],
   Portugais: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 };
+const DAYS_FULL_MAP = {
+  Français: { Lundi: 'Lundi', Mardi: 'Mardi', Mercredi: 'Mercredi', Jeudi: 'Jeudi', Vendredi: 'Vendredi', Samedi: 'Samedi', Dimanche: 'Dimanche' },
+  Anglais: { Lundi: 'Monday', Mardi: 'Tuesday', Mercredi: 'Wednesday', Jeudi: 'Thursday', Vendredi: 'Friday', Samedi: 'Saturday', Dimanche: 'Sunday' },
+  Espagnol: { Lundi: 'Lunes', Mardi: 'Martes', Mercredi: 'Miércoles', Jeudi: 'Jueves', Vendredi: 'Viernes', Samedi: 'Sábado', Dimanche: 'Domingo' },
+  Italien: { Lundi: 'Lunedì', Mardi: 'Martedì', Mercredi: 'Mercoledì', Jeudi: 'Giovedì', Vendredi: 'Venerdì', Samedi: 'Sabato', Dimanche: 'Domenica' },
+  Portugais: { Lundi: 'Segunda', Mardi: 'Terça', Mercredi: 'Quarta', Jeudi: 'Quinta', Vendredi: 'Sexta', Samedi: 'Sábado', Dimanche: 'Domingo' }
+};
+function tJour(j, langue) {
+  return (DAYS_FULL_MAP[langue] && DAYS_FULL_MAP[langue][j]) || j;
+}
 function fmtHeure(hhmm, langue) {
   if (langue !== 'Anglais' || !hhmm || !hhmm.includes(':')) return hhmm;
   const [hStr, mStr] = hhmm.split(':');
@@ -1523,7 +1533,7 @@ function ParametresView({ settings, onSave, C, subscribed }) {
       {section(tUI('sectionRegional', langue), (
         <div className="form-grid-3">
           {field(tUI('labelDevise', langue), <select style={inputStyle} value={form.devise} onChange={set('devise')}><option value="EUR">Euro (€)</option><option value="CHF">Franc suisse (CHF)</option><option value="USD">Dollar ($)</option></select>)}
-          {field(tUI('labelLangueInterface', langue), <select style={inputStyle} value={form.langue} onChange={set('langue')}><option>Français</option><option>Anglais</option><option>Espagnol</option><option>Italien</option><option>Portugais</option></select>)}
+          {field(tUI('labelLangueInterface', langue), <select style={inputStyle} value={form.langue} onChange={set('langue')}><option value="Français">Français</option><option value="Anglais">English</option><option value="Espagnol">Español</option><option value="Italien">Italiano</option><option value="Portugais">Português</option></select>)}
           {field(tUI('labelFuseau', langue), <select style={inputStyle} value={form.fuseauHoraire} onChange={set('fuseauHoraire')}><option value="Europe/Paris">Europe/Paris</option><option value="Europe/Zurich">Europe/Zurich</option></select>)}
         </div>
       ))}
@@ -1591,7 +1601,7 @@ function ParametresView({ settings, onSave, C, subscribed }) {
       {section(tUI('sectionJoursRepos', langue), (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {JOURS.map(j => (
-            <button key={j} onClick={() => toggleJour(j)} style={{ padding: '7px 14px', borderRadius: 100, border: `1px solid ${form.joursRepos.includes(j) ? ACCENTS.glacier : C.iceLine}`, background: form.joursRepos.includes(j) ? ACCENTS.glacier + '18' : C.card, color: form.joursRepos.includes(j) ? ACCENTS.glacierDeep : C.ink, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{j}</button>
+            <button key={j} onClick={() => toggleJour(j)} style={{ padding: '7px 14px', borderRadius: 100, border: `1px solid ${form.joursRepos.includes(j) ? ACCENTS.glacier : C.iceLine}`, background: form.joursRepos.includes(j) ? ACCENTS.glacier + '18' : C.card, color: form.joursRepos.includes(j) ? ACCENTS.glacierDeep : C.ink, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{tJour(j, langue)}</button>
           ))}
         </div>
       ))}
@@ -1663,7 +1673,7 @@ function AuthScreen({ onAuth }) {
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
           <select value={authLangue} onChange={e => setAuthLangue(e.target.value)} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 8, padding: '5px 8px', fontSize: 12.5, color: C.inkSoft, background: '#fff' }}>
-            <option>Français</option><option>Anglais</option><option>Espagnol</option><option>Italien</option><option>Portugais</option>
+            <option value="Français">Français</option><option value="Anglais">English</option><option value="Espagnol">Español</option><option value="Italien">Italiano</option><option value="Portugais">Português</option>
           </select>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, marginBottom: 28, fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 20, color: C.navy }}>
