@@ -458,6 +458,32 @@ function fmtHeure(hhmm, langue) {
   h = h % 12; if (h === 0) h = 12;
   return `${h}:${mStr} ${period}`;
 }
+const VALUE_TRANSLATIONS = {
+  statut: {
+    'Confirmée': { Français: 'Confirmée', Anglais: 'Confirmed', Espagnol: 'Confirmada', Italien: 'Confermata', Portugais: 'Confirmada' },
+    'En attente': { Français: 'En attente', Anglais: 'Pending', Espagnol: 'Pendiente', Italien: 'In attesa', Portugais: 'Pendente' },
+    'Annulée': { Français: 'Annulée', Anglais: 'Cancelled', Espagnol: 'Cancelada', Italien: 'Annullata', Portugais: 'Cancelada' }
+  },
+  niveau: {
+    'Débutant': { Français: 'Débutant', Anglais: 'Beginner', Espagnol: 'Principiante', Italien: 'Principiante', Portugais: 'Iniciante' },
+    'Intermédiaire': { Français: 'Intermédiaire', Anglais: 'Intermediate', Espagnol: 'Intermedio', Italien: 'Intermedio', Portugais: 'Intermediário' },
+    'Avancé': { Français: 'Avancé', Anglais: 'Advanced', Espagnol: 'Avanzado', Italien: 'Avanzato', Portugais: 'Avançado' },
+    'Expert': { Français: 'Expert', Anglais: 'Expert', Espagnol: 'Experto', Italien: 'Esperto', Portugais: 'Especialista' }
+  },
+  modePaiement: {
+    'Non renseigné': { Français: 'Non renseigné', Anglais: 'Not specified', Espagnol: 'No especificado', Italien: 'Non specificato', Portugais: 'Não especificado' },
+    'Espèces': { Français: 'Espèces', Anglais: 'Cash', Espagnol: 'Efectivo', Italien: 'Contanti', Portugais: 'Dinheiro' },
+    'Carte bancaire': { Français: 'Carte bancaire', Anglais: 'Card', Espagnol: 'Tarjeta', Italien: 'Carta', Portugais: 'Cartão' },
+    'Virement': { Français: 'Virement', Anglais: 'Bank transfer', Espagnol: 'Transferencia', Italien: 'Bonifico', Portugais: 'Transferência' }
+  },
+  paiementStatut: {
+    'Payé': { Français: 'Payé', Anglais: 'Paid', Espagnol: 'Pagado', Italien: 'Pagato', Portugais: 'Pago' },
+    'Non payé': { Français: 'Non payé', Anglais: 'Unpaid', Espagnol: 'No pagado', Italien: 'Non pagato', Portugais: 'Não pago' }
+  }
+};
+function tVal(category, value, langue) {
+  return (VALUE_TRANSLATIONS[category] && VALUE_TRANSLATIONS[category][value] && VALUE_TRANSLATIONS[category][value][langue]) || value;
+}
 function tUI(key, langue) {
   return (UI_TRANSLATIONS[langue] && UI_TRANSLATIONS[langue][key]) || UI_TRANSLATIONS['Français'][key] || key;
 }
@@ -763,7 +789,7 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
             {field(tUI('fNationalite', langue), <input style={inputStyle} value={form.nationalite} onChange={set('nationalite')} />)}
             {field(tUI('fLangueParlee', langue), <select style={inputStyle} value={form.langue} onChange={set('langue')}>{LANGUES.map(l => <option key={l}>{l}</option>)}</select>)}
             {field(tUI('fAge', langue), <input type="number" style={inputStyle} value={form.age} onChange={set('age')} />)}
-            {field(tUI('fNiveau', langue), <select style={inputStyle} value={form.niveau} onChange={set('niveau')}>{NIVEAUX.map(n => <option key={n}>{n}</option>)}</select>)}
+            {field(tUI('fNiveau', langue), <select style={inputStyle} value={form.niveau} onChange={set('niveau')}>{NIVEAUX.map(n => <option key={n} value={n}>{tVal('niveau', n, langue)}</option>)}</select>)}
             {field(tUI('fDiscipline', langue), <select style={inputStyle} value={form.discipline} onChange={set('discipline')}>{DISCIPLINES.map(d => <option key={d}>{d}</option>)}</select>)}
             {field(tUI('fNbPersonnes', langue), <input type="number" min="1" style={inputStyle} value={form.nbPersonnes} onChange={set('nbPersonnes')} />)}
             {field(tUI('fStation', langue), <select style={inputStyle} value={form.station} onChange={set('station')}>{Object.entries(STATIONS_BY_MASSIF).map(([massif, list]) => <optgroup key={massif} label={massif}>{list.map(s => <option key={s}>{s}</option>)}</optgroup>)}</select>)}
@@ -776,9 +802,9 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
               <input type="number" style={inputStyle} value={form.prix} onChange={set('prix')} />
               {hourlyHint && <span style={{ fontSize: 11.5, color: C.inkSoft }}>{tUI('suggestedRate', langue)} : {hourlyHint} {settings.devise || '€'}/h ({high ? tUI('highSeason', langue) : tUI('lowSeason', langue)})</span>}
             </div>)}
-            {field(tUI('fStatut', langue), <select style={inputStyle} value={form.statut} onChange={set('statut')}>{STATUTS.map(s => <option key={s}>{s}</option>)}</select>)}
-            {field(tUI('fModePaiement', langue), <select style={inputStyle} value={form.modePaiement || 'Non renseigné'} onChange={e => { const modePaiement = e.target.value; setForm(f => ({ ...f, modePaiement, paiement: modePaiement === 'Non renseigné' ? 'Non payé' : 'Payé' })); }}>{MODES_PAIEMENT.map(s => <option key={s}>{s}</option>)}</select>)}
-            {field(tUI('fStatutPaiement', langue), <div style={{ ...inputStyle, background: C.snowDim, color: form.paiement === 'Payé' ? ACCENTS.green : C.inkSoft, fontWeight: 600 }}>{form.paiement}</div>)}
+            {field(tUI('fStatut', langue), <select style={inputStyle} value={form.statut} onChange={set('statut')}>{STATUTS.map(s => <option key={s} value={s}>{tVal('statut', s, langue)}</option>)}</select>)}
+            {field(tUI('fModePaiement', langue), <select style={inputStyle} value={form.modePaiement || 'Non renseigné'} onChange={e => { const modePaiement = e.target.value; setForm(f => ({ ...f, modePaiement, paiement: modePaiement === 'Non renseigné' ? 'Non payé' : 'Payé' })); }}>{MODES_PAIEMENT.map(s => <option key={s} value={s}>{tVal('modePaiement', s, langue)}</option>)}</select>)}
+            {field(tUI('fStatutPaiement', langue), <div style={{ ...inputStyle, background: C.snowDim, color: form.paiement === 'Payé' ? ACCENTS.green : C.inkSoft, fontWeight: 600 }}>{tVal('paiementStatut', form.paiement, langue)}</div>)}
           </div>
           {field(tUI('fNotes', langue), <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} value={form.notes} onChange={set('notes')} />)}
         </div>
@@ -1023,7 +1049,7 @@ function ReservationsView({ reservations, onNew, onEdit, C, devise, langue }) {
       </div>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <input placeholder={tUI('searchClientStation', langue)} value={filter} onChange={e => setFilter(e.target.value)} style={{ flex: 1, border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '9px 14px', fontSize: 14, background: C.card, color: C.ink }} />
-        <select value={statutFilter} onChange={e => setStatutFilter(e.target.value)} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '9px 14px', fontSize: 14, background: C.card, color: C.ink }}>{['Tous', ...STATUTS].map(s => <option key={s}>{s === 'Tous' ? tUI('filterAll', langue) : s}</option>)}</select>
+        <select value={statutFilter} onChange={e => setStatutFilter(e.target.value)} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 9, padding: '9px 14px', fontSize: 14, background: C.card, color: C.ink }}>{['Tous', ...STATUTS].map(s => <option key={s} value={s}>{s === 'Tous' ? tUI('filterAll', langue) : tVal('statut', s, langue)}</option>)}</select>
       </div>
       <div style={{ background: C.card, border: `1px solid ${C.iceLine}`, borderRadius: 14, overflow: 'hidden', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -1032,10 +1058,10 @@ function ReservationsView({ reservations, onNew, onEdit, C, devise, langue }) {
             {filtered.map(r => (
               <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => onEdit(r)}>
                 <td style={td}>{r.prenom} {r.nom}</td><td style={td}>{fmtDateShort(r.date)}</td><td style={td}>{fmtHeure(r.heureDebut, langue)}–{fmtHeure(r.heureFin, langue)}</td>
-                <td style={td}><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}><Pill color={disciplineColor(r.discipline)}>{r.discipline}</Pill>{r.type && r.type !== 'Heure' && <Pill color={ACCENTS.amber}>{r.type}</Pill>}</div></td><td style={td}>{r.station}</td>
+                <td style={td}><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}><Pill color={disciplineColor(r.discipline)}>{r.discipline}</Pill>{r.type && r.type !== 'Heure' && <Pill color={ACCENTS.amber}>{tUI(r.type === 'Demi-journée' ? 'engDemiJournee' : 'engJournee', langue)}</Pill>}</div></td><td style={td}>{r.station}</td>
                 <td style={{ ...td, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif" }}>{fmtEUR(r.prix, devise)}</td>
-                <td style={td}><Pill color={statutColor(r.statut)}>{r.statut}</Pill></td>
-                <td style={td}><Pill color={r.paiement === 'Payé' ? ACCENTS.green : C.inkSoft}>{r.paiement}</Pill></td>
+                <td style={td}><Pill color={statutColor(r.statut)}>{tVal('statut', r.statut, langue)}</Pill></td>
+                <td style={td}><Pill color={r.paiement === 'Payé' ? ACCENTS.green : C.inkSoft}>{tVal('paiementStatut', r.paiement, langue)}</Pill></td>
                 <td style={{ ...td, textAlign: 'right' }}><Pencil size={14} color={C.inkSoft} /></td>
               </tr>
             ))}
@@ -1084,7 +1110,7 @@ function ClientModal({ client, onClose, C, devise, langue }) {
           <div className="form-grid-2" style={{ fontSize: 13.5, color: C.ink }}>
             <div><span style={{ color: C.inkSoft }}>{tUI('fNationalite', langue)} :</span> {client.nationalite || '—'}</div>
             <div><span style={{ color: C.inkSoft }}>{tUI('fLangueParlee', langue)} :</span> {client.langue || '—'}</div>
-            <div><span style={{ color: C.inkSoft }}>{tUI('fNiveau', langue)} :</span> {client.niveau}</div>
+            <div><span style={{ color: C.inkSoft }}>{tUI('fNiveau', langue)} :</span> {tVal('niveau', client.niveau, langue)}</div>
             <div><span style={{ color: C.inkSoft }}>{tUI('preferredDiscipline', langue)} :</span> {client.preference}</div>
           </div>
           {client.notes.length > 0 && (
@@ -1132,7 +1158,7 @@ function ClientsView({ reservations, C, devise, subscribed, langue }) {
               <div style={{ fontSize: 15, fontWeight: 700, color: C.navy }}>{c.prenom} {c.nom}</div>
               <Pill color={disciplineColor(c.preference)}>{c.preference}</Pill>
             </div>
-            <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 4 }}>{c.nationalite} · {c.niveau}</div>
+            <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 4 }}>{c.nationalite} · {tVal('niveau', c.niveau, langue)}</div>
             <div style={{ display: 'flex', gap: 16, marginTop: 14 }}>
               <div><div style={{ fontSize: 11.5, color: C.inkSoft }}>{tUI('miniLessons', langue)}</div><div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 16, color: C.ink }}>{c.nbCours}</div></div>
               <div><div style={{ fontSize: 11.5, color: C.inkSoft }}>{tUI('miniHours', langue)}</div><div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 16, color: C.ink }}>{c.totalHeures.toFixed(1)}h</div></div>
@@ -1255,8 +1281,8 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, 
                 <tr key={r.id}>
                   <td style={td}>{r.prenom} {r.nom}</td><td style={td}>{fmtDateShort(r.date)}</td>
                   <td style={{ ...td, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif" }}>{fmtEUR(r.prix, devise)}</td>
-                  <td style={td}><Pill color={r.paiement === 'Payé' ? ACCENTS.green : C.inkSoft}>{r.paiement}</Pill></td>
-                  <td style={td}><select value={r.modePaiement || 'Non renseigné'} onChange={e => { const modePaiement = e.target.value; onUpdate({ ...r, modePaiement, paiement: modePaiement === 'Non renseigné' ? 'Non payé' : 'Payé' }); }} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 7, padding: '5px 8px', fontSize: 12.5, color: C.inkSoft, fontWeight: 600, background: C.card }}>{MODES_PAIEMENT.map(m => <option key={m}>{m}</option>)}</select></td>
+                  <td style={td}><Pill color={r.paiement === 'Payé' ? ACCENTS.green : C.inkSoft}>{tVal('paiementStatut', r.paiement, langue)}</Pill></td>
+                  <td style={td}><select value={r.modePaiement || 'Non renseigné'} onChange={e => { const modePaiement = e.target.value; onUpdate({ ...r, modePaiement, paiement: modePaiement === 'Non renseigné' ? 'Non payé' : 'Payé' }); }} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 7, padding: '5px 8px', fontSize: 12.5, color: C.inkSoft, fontWeight: 600, background: C.card }}>{MODES_PAIEMENT.map(m => <option key={m} value={m}>{tVal('modePaiement', m, langue)}</option>)}</select></td>
                   <td style={{ ...td, textAlign: 'right' }}>
                     <button onClick={() => setInvoiceFor(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: ACCENTS.glacier + '15', border: 'none', color: ACCENTS.glacierDeep, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, padding: '6px 12px', borderRadius: 7 }}><FileText size={13} /> {tUI('btnInvoice', langue)}</button>
                   </td>
@@ -1289,7 +1315,7 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, 
                     <div style={{ fontSize: 11.5, color: C.inkSoft, fontWeight: 600 }}>N° {String(r.id).slice(-6)}</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, marginTop: 2 }}>{r.prenom} {r.nom}</div>
                   </div>
-                  <Pill color={r.paiement === 'Payé' ? ACCENTS.green : ACCENTS.amber}>{r.paiement}</Pill>
+                  <Pill color={r.paiement === 'Payé' ? ACCENTS.green : ACCENTS.amber}>{tVal('paiementStatut', r.paiement, langue)}</Pill>
                 </div>
                 <div style={{ fontSize: 12.5, color: C.inkSoft }}>{fmtDateShort(r.date)} · {r.discipline} · {r.station}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
