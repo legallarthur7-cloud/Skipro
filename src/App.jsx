@@ -1869,7 +1869,7 @@ export default function App() {
                 );
               })}
             </nav>
-            <button onClick={() => { setTab('parametres'); setMobileMenuOpen(false); }} style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: 14.5, background: tab === 'parametres' ? 'rgba(255,255,255,0.1)' : 'transparent', color: tab === 'parametres' ? '#fff' : 'rgba(255,255,255,0.68)' }}>
+            <button onClick={() => { setTab('parametres'); setMobileMenuOpen(false); }} style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: 14.5, background: tab === 'parametres' ? 'rgba(255,255,255,0.1)' : 'transparent', color: tab === 'parametres' ? '#fff' : 'rgba(255,255,255,0.68)' }}>
               <SettingsIcon size={17} /> {tUI('parametres', settings.langue)}
             </button>
             <button onClick={() => { setAuthed(false); setMobileMenuOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: 14.5, background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>
