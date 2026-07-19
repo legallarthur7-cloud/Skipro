@@ -1674,7 +1674,7 @@ function ParametresView({ settings, onSave, C, subscribed }) {
       ))}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={() => { onSave(form); setSaved(true); setTimeout(() => setSaved(false), 2000); }} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{tUI('btnSave', langue)}</button>
+        <button onClick={async () => { const result = await onSave(form); if (result && result.ok === false) { alert(tUI('slugTaken', langue)); } else { setSaved(true); setTimeout(() => setSaved(false), 2000); } }} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '10px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{tUI('btnSave', langue)}</button>
         {saved && <span style={{ fontSize: 13.5, color: ACCENTS.green, fontWeight: 600 }}>{tUI('settingsSaved', langue)}</span>}
       </div>
       </BlurGate>
@@ -1844,7 +1844,25 @@ export default function App() {
   };
   const handleDelete = async (id) => { await saveAll(reservations.filter(r => r.id !== id)); setModal(null); };
   const handleUpdate = async (updated) => { const list = reservations.map(r => r.id === updated.id ? updated : r); await saveAll(list); };
-  const handleSaveSettings = async (form) => { setSettings(form); await persistSettings(form); };
+  const handleSaveSettings = async (form) => {
+    if (form.slug) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const res = await fetch('/api/save-slug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user?.id, slug: form.slug }),
+        });
+        const data = await res.json();
+        if (!res.ok) return { ok: false, error: data.error };
+      } catch (e) {
+        return { ok: false, error: 'Erreur de connexion.' };
+      }
+    }
+    setSettings(form);
+    await persistSettings(form);
+    return { ok: true };
+  };
   const openNew = (date, heureDebut) => setModal({ ...emptyForm, id: null, date: date || emptyForm.date, heureDebut: heureDebut || emptyForm.heureDebut, heureFin: heureDebut ? `${pad(Number(heureDebut.split(':')[0]) + 1)}:00` : emptyForm.heureFin });
   const openEdit = (r) => setModal(r);
 
