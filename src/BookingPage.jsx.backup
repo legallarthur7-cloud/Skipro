@@ -41,21 +41,14 @@ const DISCIPLINES = ['Ski', 'Snowboard'];
 const NIVEAUX = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
 const ENGAGEMENTS = ['Heure', 'Demi-journée', 'Journée'];
 const CRENEAUX_KEYS = ['Matin', 'Après-midi'];
+const CRENEAUX = { 'Matin': ['09:00', '12:30'], 'Après-midi': ['13:30', '17:00'] };
 const JOURNEE_HOURS = ['09:00', '16:30'];
 const LANGUES_CANON = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
 
-// Créneaux demi-journée : dépendent des horaires personnalisés du moniteur (Paramètres > Horaires),
-// avec repli sur les valeurs par défaut si non renseignés.
-function getCreneaux(settings) {
-  return {
-    'Matin': [settings.matinDebut || '09:00', settings.matinFin || '12:30'],
-    'Après-midi': [settings.apresMidiDebut || '13:30', settings.apresMidiFin || '17:00']
-  };
-}
-
+const RES_KEY = 'skipro-reservations-v1';
+const SETTINGS_KEY = 'skipro-settings-v1';
 const DEFAULT_SETTINGS = {
-  nom: 'Moniteur ESF', profession: 'Moniteur de ski indépendant', devise: 'EUR',
-  matinDebut: '09:00', matinFin: '12:30', apresMidiDebut: '13:30', apresMidiFin: '17:00',
+  nom: 'Moniteur ESF', devise: 'EUR',
   tarifSkiHaute: 75, tarifSkiBasse: 55, tarifSnowboardHaute: 80, tarifSnowboardBasse: 60,
   tarifDemiJourneeHaute: 210, tarifDemiJourneeBasse: 150, tarifJourneeHaute: 370, tarifJourneeBasse: 270,
   seasonMode: 'vacances', zoneVacances: 'Toutes', hauteSaisonDebut: '12-20', hauteSaisonFin: '02-28'
@@ -68,29 +61,29 @@ const fmtEUR = (n, devise = 'EUR') => new Intl.NumberFormat('fr-FR', { style: 'c
 const timeToMinutes = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 const minutesToTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 
+const WORK_START = 9 * 60, WORK_END = 17 * 60; // journée de travail 09:00–17:00
 const HEURE_DURATION = 60; // durée par défaut d'un cours "Heure"
 
-// busySlots vient de l'API publique : uniquement { date, heureDebut, heureFin } des réservations non annulées.
-const busyIntervals = (dateKey, busySlots) =>
-  busySlots.filter(r => r.date === dateKey).map(r => [timeToMinutes(r.heureDebut), timeToMinutes(r.heureFin)]);
+const busyIntervals = (dateKey, reservations) =>
+  reservations.filter(r => r.date === dateKey && r.statut !== 'Annulée').map(r => [timeToMinutes(r.heureDebut), timeToMinutes(r.heureFin)]);
 
 const overlaps = (start, end, intervals) => intervals.some(([s, e]) => start < e && end > s);
 
-const availableHourStarts = (dateKey, busySlots, workStart, workEnd) => {
-  const busy = busyIntervals(dateKey, busySlots);
+const availableHourStarts = (dateKey, reservations) => {
+  const busy = busyIntervals(dateKey, reservations);
   const starts = [];
-  for (let m = workStart; m + HEURE_DURATION <= workEnd; m += 30) {
+  for (let m = WORK_START; m + HEURE_DURATION <= WORK_END; m += 30) {
     if (!overlaps(m, m + HEURE_DURATION, busy)) starts.push(m);
   }
   return starts;
 };
-const isCreneauFree = (dateKey, creneau, busySlots, creneaux) => {
-  const busy = busyIntervals(dateKey, busySlots);
-  const [s, e] = creneaux[creneau].map(timeToMinutes);
+const isCreneauFree = (dateKey, creneau, reservations) => {
+  const busy = busyIntervals(dateKey, reservations);
+  const [s, e] = CRENEAUX[creneau].map(timeToMinutes);
   return !overlaps(s, e, busy);
 };
-const isJourneeFree = (dateKey, busySlots) => {
-  const busy = busyIntervals(dateKey, busySlots);
+const isJourneeFree = (dateKey, reservations) => {
+  const busy = busyIntervals(dateKey, reservations);
   const [s, e] = JOURNEE_HOURS.map(timeToMinutes);
   return !overlaps(s, e, busy);
 };
@@ -128,7 +121,7 @@ const UI_LANGS = [
 
 const T = {
   fr: {
-title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} confirmera ta réservation rapidement.`,
+    title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} confirmera ta réservation rapidement.`,
     sectionInfo: 'Tes informations', sectionCourse: 'Ton cours',
     prenom: 'Prénom *', nom: 'Nom *', telephone: 'Téléphone *', email: 'E-mail', nationalite: 'Nationalité',
     langue: 'Langue parlée', age: 'Âge', nbPersonnes: 'Nombre de personnes',
@@ -140,8 +133,6 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Merci de renseigner au minimum ton prénom, nom, téléphone et la date souhaitée.',
     successTitle: 'Demande envoyée !', successBody: (prenom, nom) => `Merci ${prenom} ! Ta demande de cours a bien été transmise. ${nom} va la confirmer et te recontacter par téléphone ou e-mail.`,
     newRequest: 'Faire une nouvelle demande', high: 'haute saison', low: 'basse saison',
-    notFoundTitle: 'Lien introuvable', notFoundBody: "Ce lien de réservation n'existe pas ou n'est plus actif.",
-    loading: 'Chargement...',
     engagements: { 'Heure': 'Heure', 'Demi-journée': 'Demi-journée', 'Journée': 'Journée' },
     disciplines: { Ski: 'Ski', Snowboard: 'Snowboard' },
     niveaux: { Débutant: 'Débutant', Intermédiaire: 'Intermédiaire', Avancé: 'Avancé', Expert: 'Expert' },
@@ -161,8 +152,6 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Please provide at least your first name, last name, phone number and preferred date.',
     successTitle: 'Request sent!', successBody: (prenom, nom) => `Thanks ${prenom}! Your lesson request has been sent. ${nom} will confirm it and get back to you by phone or e-mail.`,
     newRequest: 'Make a new request', high: 'high season', low: 'low season',
-    notFoundTitle: 'Link not found', notFoundBody: 'This booking link does not exist or is no longer active.',
-    loading: 'Loading...',
     engagements: { 'Heure': 'Hour', 'Demi-journée': 'Half-day', 'Journée': 'Full day' },
     disciplines: { Ski: 'Ski', Snowboard: 'Snowboard' },
     niveaux: { Débutant: 'Beginner', Intermédiaire: 'Intermediate', Avancé: 'Advanced', Expert: 'Expert' },
@@ -182,8 +171,6 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Por favor indica al menos tu nombre, apellido, teléfono y la fecha deseada.',
     successTitle: '¡Solicitud enviada!', successBody: (prenom, nom) => `¡Gracias ${prenom}! Tu solicitud de clase ha sido enviada. ${nom} la confirmará y se pondrá en contacto contigo por teléfono o correo.`,
     newRequest: 'Hacer una nueva solicitud', high: 'temporada alta', low: 'temporada baja',
-    notFoundTitle: 'Enlace no encontrado', notFoundBody: 'Este enlace de reserva no existe o ya no está activo.',
-    loading: 'Cargando...',
     engagements: { 'Heure': 'Hora', 'Demi-journée': 'Media jornada', 'Journée': 'Jornada completa' },
     disciplines: { Ski: 'Esquí', Snowboard: 'Snowboard' },
     niveaux: { Débutant: 'Principiante', Intermédiaire: 'Intermedio', Avancé: 'Avanzado', Expert: 'Experto' },
@@ -203,8 +190,6 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Bitte gib mindestens Vorname, Nachname, Telefonnummer und gewünschtes Datum an.',
     successTitle: 'Anfrage gesendet!', successBody: (prenom, nom) => `Danke ${prenom}! Deine Kursanfrage wurde übermittelt. ${nom} wird sie bestätigen und sich telefonisch oder per E-Mail bei dir melden.`,
     newRequest: 'Neue Anfrage stellen', high: 'Hochsaison', low: 'Nebensaison',
-    notFoundTitle: 'Link nicht gefunden', notFoundBody: 'Dieser Buchungslink existiert nicht mehr oder ist nicht aktiv.',
-    loading: 'Wird geladen...',
     engagements: { 'Heure': 'Stunde', 'Demi-journée': 'Halbtags', 'Journée': 'Ganztags' },
     disciplines: { Ski: 'Ski', Snowboard: 'Snowboard' },
     niveaux: { Débutant: 'Anfänger', Intermédiaire: 'Fortgeschritten', Avancé: 'Sehr fortgeschritten', Expert: 'Experte' },
@@ -224,8 +209,6 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Indica almeno nome, cognome, telefono e data desiderata.',
     successTitle: 'Richiesta inviata!', successBody: (prenom, nom) => `Grazie ${prenom}! La tua richiesta di lezione è stata inviata. ${nom} la confermerà e ti ricontatterà per telefono o e-mail.`,
     newRequest: 'Fai una nuova richiesta', high: 'alta stagione', low: 'bassa stagione',
-    notFoundTitle: 'Link non trovato', notFoundBody: 'Questo link di prenotazione non esiste più o non è attivo.',
-    loading: 'Caricamento...',
     engagements: { 'Heure': 'Ora', 'Demi-journée': 'Mezza giornata', 'Journée': 'Giornata intera' },
     disciplines: { Ski: 'Sci', Snowboard: 'Snowboard' },
     niveaux: { Débutant: 'Principiante', Intermédiaire: 'Intermedio', Avancé: 'Avanzato', Expert: 'Esperto' },
@@ -245,8 +228,6 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Por favor indica pelo menos o teu nome, apelido, telefone e a data pretendida.',
     successTitle: 'Pedido enviado!', successBody: (prenom, nom) => `Obrigado ${prenom}! O teu pedido de aula foi enviado. ${nom} vai confirmá-lo e entrar em contacto por telefone ou e-mail.`,
     newRequest: 'Fazer um novo pedido', high: 'época alta', low: 'época baixa',
-    notFoundTitle: 'Link não encontrado', notFoundBody: 'Este link de reserva não existe ou já não está ativo.',
-    loading: 'A carregar...',
     engagements: { 'Heure': 'Hora', 'Demi-journée': 'Meio-dia', 'Journée': 'Dia inteiro' },
     disciplines: { Ski: 'Esqui', Snowboard: 'Snowboard' },
     niveaux: { Débutant: 'Iniciante', Intermédiaire: 'Intermédio', Avancé: 'Avançado', Expert: 'Especialista' },
@@ -255,22 +236,12 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
   }
 };
 
-async function fetchPublicBooking(slug) {
-  const res = await fetch(`/api/public-booking?slug=${encodeURIComponent(slug)}`);
-  const data = await res.json();
-if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
-  return data; // { userId, settings, busySlots }
+async function loadReservations() {
+  try { const r = await window.storage.get(RES_KEY); return JSON.parse(r.value); } catch (e) { return []; }
 }
-
-async function postPublicBooking(slug, reservation) {
-  const res = await fetch('/api/public-booking', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ slug, reservation })
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
-  return data; // { ok, id }
+async function persistReservations(list) { try { await window.storage.set(RES_KEY, JSON.stringify(list)); } catch (e) { console.error(e); } }
+async function loadSettings() {
+  try { const r = await window.storage.get(SETTINGS_KEY); return { ...DEFAULT_SETTINGS, ...JSON.parse(r.value) }; } catch (e) { return DEFAULT_SETTINGS; }
 }
 
 const emptyForm = {
@@ -279,46 +250,30 @@ const emptyForm = {
   date: toKey(new Date()), type: 'Heure', creneau: 'Matin', message: ''
 };
 
-export default function BookingPage({ slug }) {
+export default function App() {
   const [uiLang, setUiLang] = useState('fr');
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
-  const [reservations, setReservations] = useState([]); // busySlots renvoyés par l'API publique
+  const [reservations, setReservations] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [ready, setReady] = useState(false);
-  const [notFound, setNotFound] = useState(false);
   const t = T[uiLang];
 
   useEffect(() => {
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap';
     link.rel = 'stylesheet'; document.head.appendChild(link);
-    (async () => {
-      try {
-        const data = await fetchPublicBooking(slug);
-        setSettings({ ...DEFAULT_SETTINGS, ...data.settings });
-        setReservations(data.busySlots || []);
-      } catch (e) {
-        setNotFound(true);
-      } finally {
-        setReady(true);
-      }
-    })();
-  }, [slug]);
+    (async () => { setSettings(await loadSettings()); setReservations(await loadReservations()); })();
+  }, []);
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
   const high = isHighSeason(form.date, settings);
   const seasonLabel = high ? t.high : t.low;
 
-  const creneaux = useMemo(() => getCreneaux(settings), [settings]);
-  const workStart = useMemo(() => timeToMinutes(settings.matinDebut || '09:00'), [settings]);
-  const workEnd = useMemo(() => timeToMinutes(settings.apresMidiFin || '17:00'), [settings]);
-
-  const hourOptions = useMemo(() => availableHourStarts(form.date, reservations, workStart, workEnd), [form.date, reservations, workStart, workEnd]);
-  const matinFree = useMemo(() => isCreneauFree(form.date, 'Matin', reservations, creneaux), [form.date, reservations, creneaux]);
-  const apremFree = useMemo(() => isCreneauFree(form.date, 'Après-midi', reservations, creneaux), [form.date, reservations, creneaux]);
+  const hourOptions = useMemo(() => availableHourStarts(form.date, reservations), [form.date, reservations]);
+  const matinFree = useMemo(() => isCreneauFree(form.date, 'Matin', reservations), [form.date, reservations]);
+  const apremFree = useMemo(() => isCreneauFree(form.date, 'Après-midi', reservations), [form.date, reservations]);
   const journeeFree = useMemo(() => isJourneeFree(form.date, reservations), [form.date, reservations]);
   const noAvailabilityAtAll = hourOptions.length === 0 && !matinFree && !apremFree && !journeeFree;
 
@@ -331,8 +286,8 @@ export default function BookingPage({ slug }) {
           return { ...f, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + HEURE_DURATION) };
         }
       } else if (f.type === 'Demi-journée') {
-        if (f.creneau === 'Matin' && !matinFree && apremFree) return { ...f, creneau: 'Après-midi', heureDebut: creneaux['Après-midi'][0], heureFin: creneaux['Après-midi'][1] };
-        if (f.creneau === 'Après-midi' && !apremFree && matinFree) return { ...f, creneau: 'Matin', heureDebut: creneaux['Matin'][0], heureFin: creneaux['Matin'][1] };
+        if (f.creneau === 'Matin' && !matinFree && apremFree) return { ...f, creneau: 'Après-midi', heureDebut: CRENEAUX['Après-midi'][0], heureFin: CRENEAUX['Après-midi'][1] };
+        if (f.creneau === 'Après-midi' && !apremFree && matinFree) return { ...f, creneau: 'Matin', heureDebut: CRENEAUX['Matin'][0], heureFin: CRENEAUX['Matin'][1] };
       } else if (f.type === 'Journée' && !journeeFree && hourOptions.length > 0) {
         const start = hourOptions[0];
         return { ...f, type: 'Heure', heureDebut: minutesToTime(start), heureFin: minutesToTime(start + HEURE_DURATION) };
@@ -354,40 +309,41 @@ export default function BookingPage({ slug }) {
       if (type === 'Journée') return { ...f, type, heureDebut: JOURNEE_HOURS[0], heureFin: JOURNEE_HOURS[1] };
       if (type === 'Demi-journée') {
         const cren = matinFree ? 'Matin' : (apremFree ? 'Après-midi' : (f.creneau || 'Matin'));
-        return { ...f, type, creneau: cren, heureDebut: creneaux[cren][0], heureFin: creneaux[cren][1] };
+        return { ...f, type, creneau: cren, heureDebut: CRENEAUX[cren][0], heureFin: CRENEAUX[cren][1] };
       }
       const start = hourOptions[0];
       return start !== undefined ? { ...f, type, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + HEURE_DURATION) } : { ...f, type };
     });
   };
-  const setCreneau = (cren) => { if ((cren === 'Matin' && !matinFree) || (cren === 'Après-midi' && !apremFree)) return; setForm(f => ({ ...f, creneau: cren, heureDebut: creneaux[cren][0], heureFin: creneaux[cren][1] })); };
+  const setCreneau = (cren) => { if ((cren === 'Matin' && !matinFree) || (cren === 'Après-midi' && !apremFree)) return; setForm(f => ({ ...f, creneau: cren, heureDebut: CRENEAUX[cren][0], heureFin: CRENEAUX[cren][1] })); };
   const setHeureDebut = (e) => { const start = Number(e.target.value); setForm(f => ({ ...f, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + HEURE_DURATION) })); };
 
   const handleSubmit = async () => {
     if (!form.prenom || !form.nom || !form.telephone || !form.date) { setError(t.errorRequired); return; }
     setError(''); setLoading(true);
-    const heureDebut = form.heureDebut || creneaux['Matin'][0];
-    const heureFin = form.heureFin || creneaux['Matin'][1];
+    const heureDebut = form.heureDebut || '09:00';
+    const heureFin = form.heureFin || '10:00';
+    const current = await loadReservations();
+    const busy = busyIntervals(form.date, current);
+    if (overlaps(timeToMinutes(heureDebut), timeToMinutes(heureFin), busy)) {
+      setLoading(false);
+      setReservations(current);
+      setError("Ce créneau vient d'être réservé par quelqu'un d'autre — merci d'en choisir un autre.");
+      return;
+    }
     const reservation = {
-      nom: form.nom, prenom: form.prenom, telephone: form.telephone, email: form.email,
+      id: Date.now(), nom: form.nom, prenom: form.prenom, telephone: form.telephone, email: form.email,
       nationalite: form.nationalite, langue: form.langue, age: Number(form.age) || '', niveau: form.niveau,
       discipline: form.discipline, nbPersonnes: Number(form.nbPersonnes) || 1, station: form.station,
       pointRdv: '', date: form.date, type: form.type, creneau: form.creneau, heureDebut, heureFin,
-      prix: estimate,
+      prix: estimate, statut: 'En attente', paiement: 'Non payé', modePaiement: 'Non renseigné',
       notes: form.message ? `Demande en ligne (${uiLang.toUpperCase()}) : ${form.message}` : `Demande envoyée via le formulaire en ligne (langue : ${uiLang.toUpperCase()}).`
     };
-    try {
-      await postPublicBooking(slug, reservation);
-      setLoading(false);
-      setSent(true);
-    } catch (e) {
-      setLoading(false);
-      // Si le créneau vient d'être pris par quelqu'un d'autre, on rafraîchit les disponibilités affichées
-      try { const fresh = await fetchPublicBooking(slug); setReservations(fresh.busySlots || []); } catch (_) { /* ignore */ }
-      setError(e.message || "Une erreur est survenue lors de l'envoi. Merci de réessayer.");
-    }
+    await persistReservations([...current, reservation]);
+    setLoading(false); setSent(true);
   };
-const inputStyle = { border: `1px solid ${COLORS.iceLine}`, borderRadius: 9, padding: '10px 12px', fontSize: 14.5, fontFamily: 'Inter, sans-serif', color: COLORS.ink, background: '#fff', width: '100%' };
+
+  const inputStyle = { border: `1px solid ${COLORS.iceLine}`, borderRadius: 9, padding: '10px 12px', fontSize: 14.5, fontFamily: 'Inter, sans-serif', color: COLORS.ink, background: '#fff', width: '100%' };
   const field = (label, input) => <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}><label style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.inkSoft }}>{label}</label>{input}</div>;
 
   const LangSwitcher = (
@@ -402,25 +358,6 @@ const inputStyle = { border: `1px solid ${COLORS.iceLine}`, borderRadius: 9, pad
       ))}
     </div>
   );
-
-  if (!ready) {
-    return (
-      <div style={{ minHeight: '100vh', background: COLORS.snow, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', color: COLORS.inkSoft, fontSize: 14.5 }}>
-        {t.loading}
-      </div>
-    );
-  }
-
-  if (notFound) {
-    return (
-      <div style={{ minHeight: '100vh', background: COLORS.snow, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: 'Inter, sans-serif' }}>
-        <div style={{ maxWidth: 420, width: '100%', textAlign: 'center', background: '#fff', border: `1px solid ${COLORS.iceLine}`, borderRadius: 18, padding: '40px 32px' }}>
-          <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 21, fontWeight: 700, color: COLORS.navy, marginBottom: 10 }}>{t.notFoundTitle}</h1>
-          <p style={{ fontSize: 14.5, color: COLORS.inkSoft, lineHeight: 1.6 }}>{t.notFoundBody}</p>
-        </div>
-      </div>
-    );
-  }
 
   if (sent) {
     return (
@@ -489,7 +426,7 @@ const inputStyle = { border: `1px solid ${COLORS.iceLine}`, borderRadius: 9, pad
                 {CRENEAUX_KEYS.map(cren => {
                   const free = cren === 'Matin' ? matinFree : apremFree;
                   return (
-                    <button key={cren} type="button" disabled={!free} onClick={() => setCreneau(cren)} style={{ flex: 1, padding: '8px', borderRadius: 8, cursor: free ? 'pointer' : 'not-allowed', fontSize: 12.5, fontWeight: 600, border: `1px solid ${form.creneau === cren ? COLORS.glacier : COLORS.iceLine}`, background: !free ? COLORS.snowDim : (form.creneau === cren ? COLORS.glacier + '18' : '#fff'), color: !free ? COLORS.inkSoft : (form.creneau === cren ? COLORS.glacierDeep : COLORS.ink), opacity: free ? 1 : 0.6 }}>{t.creneaux[cren]} ({creneaux[cren][0]}–{creneaux[cren][1]}){!free ? ' 🚫' : ''}</button>
+                    <button key={cren} type="button" disabled={!free} onClick={() => setCreneau(cren)} style={{ flex: 1, padding: '8px', borderRadius: 8, cursor: free ? 'pointer' : 'not-allowed', fontSize: 12.5, fontWeight: 600, border: `1px solid ${form.creneau === cren ? COLORS.glacier : COLORS.iceLine}`, background: !free ? COLORS.snowDim : (form.creneau === cren ? COLORS.glacier + '18' : '#fff'), color: !free ? COLORS.inkSoft : (form.creneau === cren ? COLORS.glacierDeep : COLORS.ink), opacity: free ? 1 : 0.6 }}>{t.creneaux[cren]} ({CRENEAUX[cren][0]}–{CRENEAUX[cren][1]}){!free ? ' 🚫' : ''}</button>
                   );
                 })}
               </div>
@@ -517,7 +454,8 @@ const inputStyle = { border: `1px solid ${COLORS.iceLine}`, borderRadius: 9, pad
               <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.navy }}>{fmtEUR(estimate, settings.devise)}</span>
             </div>
           </div>
-{field(t.message, <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} value={form.message} onChange={set('message')} placeholder={t.messagePh} />)}
+
+          {field(t.message, <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} value={form.message} onChange={set('message')} placeholder={t.messagePh} />)}
 
           {error && <div style={{ fontSize: 13, color: COLORS.amber, background: COLORS.amber + '15', borderRadius: 8, padding: '10px 12px' }}>{error}</div>}
 

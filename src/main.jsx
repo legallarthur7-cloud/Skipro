@@ -5,12 +5,14 @@ import App from './App.jsx';
 import BookingPage from './BookingPage.jsx';
 
 // Routage minimal sans dépendance externe :
-// https://tonsite.com/           -> l'app moniteur (App.jsx)
-// https://tonsite.com/reserver   -> le formulaire public client (BookingPage.jsx)
-const isBookingPage = window.location.pathname.startsWith('/reserver');
+// https://skipro-app.com/            -> l'app moniteur (App.jsx)
+// https://skipro-app.com/<slug>      -> le formulaire public client (BookingPage.jsx)
+//                                        <slug> = identifiant personnalisé choisi dans Paramètres (ex : /arthur)
+const slug = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+const isBookingPage = slug.length > 0;
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {isBookingPage ? <BookingPage /> : <App />}
+    {isBookingPage ? <BookingPage slug={slug} /> : <App />}
   </React.StrictMode>
 );

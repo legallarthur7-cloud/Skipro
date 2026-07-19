@@ -8,14 +8,6 @@ const supabaseAdmin = createClient(
 const SETTINGS_KEY = 'skipro-settings-v1';
 const RES_KEY = 'skipro-reservations-v1';
 
-function timeToMinutes(t) {
-  const [h, m] = String(t).split(':').map(Number);
-  return h * 60 + m;
-}
-function overlaps(aStart, aEnd, bStart, bEnd) {
-  return aStart < bEnd && aEnd > bStart;
-}
-
 async function getUserIdForSlug(slug) {
   const cleanSlug = String(slug).toLowerCase().replace(/[^a-z0-9-]/g, '');
   const { data } = await supabaseAdmin
@@ -68,7 +60,7 @@ export default async function handler(req, res) {
         apresMidiDebut: settings.apresMidiDebut,
         apresMidiFin: settings.apresMidiFin,
         tarifSkiHaute: settings.tarifSkiHaute,
-tarifSkiBasse: settings.tarifSkiBasse,
+        tarifSkiBasse: settings.tarifSkiBasse,
         tarifSnowboardHaute: settings.tarifSnowboardHaute,
         tarifSnowboardBasse: settings.tarifSnowboardBasse,
         tarifDemiJourneeHaute: settings.tarifDemiJourneeHaute,
@@ -89,29 +81,12 @@ tarifSkiBasse: settings.tarifSkiBasse,
     if (req.method === 'POST') {
       const { slug, reservation } = req.body;
       if (!slug || !reservation) return res.status(400).json({ error: 'slug et reservation requis' });
-      if (!reservation.date || !reservation.heureDebut || !reservation.heureFin) {
-        return res.status(400).json({ error: 'date, heureDebut et heureFin requis' });
-      }
 
       const userId = await getUserIdForSlug(slug);
       if (!userId) return res.status(404).json({ error: 'Moniteur introuvable' });
 
       const reservationsRaw = await getRow(userId, RES_KEY);
       const reservations = reservationsRaw ? JSON.parse(reservationsRaw) : [];
-
-      // Vérification anti-conflit côté serveur : on refuse si le créneau demandé chevauche
-      // une réservation déjà enregistrée (non annulée) pour cette date, quel que soit ce que
-      // le client a pu voir avant d'envoyer sa demande.
-      const newStart = timeToMinutes(reservation.heureDebut);
-      const newEnd = timeToMinutes(reservation.heureFin);
-      const conflict = reservations.some(r =>
-        r.date === reservation.date &&
-        r.statut !== 'Annulée' &&
-        overlaps(newStart, newEnd, timeToMinutes(r.heureDebut), timeToMinutes(r.heureFin))
-      );
-      if (conflict) {
-        return res.status(409).json({ error: "Ce créneau vient d'être réservé par quelqu'un d'autre. Merci d'en choisir un autre." });
-      }
 
       const newReservation = {
         ...reservation,
