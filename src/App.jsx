@@ -1073,6 +1073,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
   const byDate = useCallback((key) => reservations.filter(r => r.date === key && r.statut !== 'Annulée'), [reservations]);
   const [drag, setDrag] = useState(null);
   const didDragRef = useRef(false);
+  const [pendingConfirm, setPendingConfirm] = useState(null);
   const getClientY = (e) => (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
   const startDrag = (ev, mode) => (e) => {
     e.stopPropagation();
@@ -1111,7 +1112,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
         const msg = d.mode === 'move'
           ? `Êtes-vous sûr de vouloir déplacer cette indisponibilité à ${heureDebut}–${heureFin} ?`
           : `Êtes-vous sûr de vouloir modifier la durée de cette indisponibilité à ${heureDebut}–${heureFin} ?`;
-        if (window.confirm(msg)) onAbsenceUpdate({ ...d.ev, heureDebut, heureFin });
+        setPendingConfirm({ message: msg, payload: { ...d.ev, heureDebut, heureFin } });
       }
       return null;
     });
@@ -1161,6 +1162,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
   };
 
   return (
+    <>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div className="header-row">
         <div><h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 24, fontWeight: 700, color: C.navy }}>{tUI('calendarTitle', langue)}</h1><p style={{ fontSize: 14, color: C.inkSoft, marginTop: 4, textTransform: 'capitalize' }}>{label}</p></div>
@@ -1199,6 +1201,18 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
       )}
       </BlurGate>
     </div>
+    {pendingConfirm && (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,18,27,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 20 }} onClick={() => setPendingConfirm(null)}>
+        <div style={{ background: C.snow, borderRadius: 16, width: '100%', maxWidth: 380, boxShadow: '0 30px 80px -30px rgba(0,0,0,0.5)', padding: 24 }} onClick={e => e.stopPropagation()}>
+          <p style={{ fontSize: 14.5, color: C.ink, lineHeight: 1.5, marginBottom: 20 }}>{pendingConfirm.message}</p>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <button onClick={() => setPendingConfirm(null)} style={{ padding: '9px 18px', borderRadius: 9, border: `1px solid ${C.iceLine}`, background: C.card, color: C.ink, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>Annuler</button>
+            <button onClick={() => { onAbsenceUpdate(pendingConfirm.payload); setPendingConfirm(null); }} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: ACCENTS.glacier, color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>Confirmer</button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 
