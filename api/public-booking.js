@@ -117,8 +117,7 @@ tarifSkiBasse: settings.tarifSkiBasse,
         ...reservation,
         id: Date.now(),
         statut: 'En attente',
-        paiement: 'Non payé',
-        modePaiement: 'Non renseigné'
+        paiement: 'Non payé'
       };
 
       reservations.push(newReservation);

@@ -61,6 +61,17 @@ async function isGuardAlreadyUsed(guardKey) {
   return !!(data && data.length > 0);
 }
 
+async function getKvValue(userId, key) {
+  const { data } = await supabaseAdmin
+    .from('kv_store')
+    .select('value')
+    .eq('user_id', userId)
+    .eq('key', key)
+    .eq('shared', false)
+    .limit(1);
+  return data && data.length > 0 ? data[0].value : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
@@ -79,6 +90,32 @@ export default async function handler(req, res) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object;
+
+        if (session.metadata?.type === 'reservation-deposit') {
+          const { slug, reservationId, userId: depositUserId } = session.metadata;
+          try {
+            const reservationsRaw = await getKvValue(depositUserId, 'skipro-reservations-v1');
+            const reservations = reservationsRaw ? JSON.parse(reservationsRaw) : [];
+            const idx = reservations.findIndex(r => String(r.id) === String(reservationId));
+            if (idx !== -1) {
+              reservations[idx].garantieStatut = 'Payé';
+              reservations[idx].stripePaymentIntentId = session.payment_intent;
+              await supabaseAdmin.from('kv_store').upsert({
+                user_id: depositUserId,
+                key: 'skipro-reservations-v1',
+                value: JSON.stringify(reservations),
+                shared: false,
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'user_id,key,shared' });
+            } else {
+              console.error('Reservation introuvable pour acompte', slug, reservationId);
+            }
+          } catch (depositErr) {
+            console.error('Erreur mise a jour acompte reservation', depositErr);
+          }
+          break;
+        }
+
         const email = session.customer_email || session.customer_details?.email;
         await setAbonnementForEmail(email, true);
 

@@ -140,6 +140,13 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Merci de renseigner au minimum ton prénom, nom, téléphone et la date souhaitée.',
     successTitle: 'Demande envoyée !', successBody: (prenom, nom) => `Merci ${prenom} ! Ta demande de cours a bien été transmise. ${nom} va la confirmer et te recontacter par téléphone ou e-mail.`,
     newRequest: 'Faire une nouvelle demande', high: 'haute saison', low: 'basse saison',
+    paymentMethod: 'Mode de paiement', payCard: 'Carte bancaire', payCash: 'Especes',
+    depositNote: 'Un acompte de 15% est demande pour confirmer une reservation reglee en especes.',
+    depositAmountLabel: (s) => `Montant de l'acompte : ${s}`,
+    payDepositButton: "Payer l'acompte et confirmer", payingRedirect: 'Redirection vers le paiement securise...',
+    paymentSuccessTitle: 'Acompte recu !', paymentSuccessBody: (prenom, nom) => `Merci ${prenom} ! Ton acompte a bien ete recu. ${nom} va confirmer ta reservation.`,
+    paymentCancelTitle: 'Paiement annule', paymentCancelBody: "Le paiement a ete annule, ta reservation n'a pas ete confirmee. Tu peux reessayer.",
+    retryPayment: 'Reessayer',
     notFoundTitle: 'Lien introuvable', notFoundBody: "Ce lien de réservation n'existe pas ou n'est plus actif.",
     loading: 'Chargement...',
     engagements: { 'Heure': 'Heure', 'Demi-journée': 'Demi-journée', 'Journée': 'Journée' },
@@ -161,6 +168,13 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Please provide at least your first name, last name, phone number and preferred date.',
     successTitle: 'Request sent!', successBody: (prenom, nom) => `Thanks ${prenom}! Your lesson request has been sent. ${nom} will confirm it and get back to you by phone or e-mail.`,
     newRequest: 'Make a new request', high: 'high season', low: 'low season',
+    paymentMethod: 'Payment method', payCard: 'Card', payCash: 'Cash',
+    depositNote: 'A 15% deposit is required to confirm a booking paid in cash.',
+    depositAmountLabel: (s) => `Deposit amount: ${s}`,
+    payDepositButton: 'Pay deposit and confirm', payingRedirect: 'Redirecting to secure payment...',
+    paymentSuccessTitle: 'Deposit received!', paymentSuccessBody: (prenom, nom) => `Thanks ${prenom}! Your deposit has been received. ${nom} will confirm your booking.`,
+    paymentCancelTitle: 'Payment cancelled', paymentCancelBody: 'The payment was cancelled, your booking was not confirmed. You can try again.',
+    retryPayment: 'Try again',
     notFoundTitle: 'Link not found', notFoundBody: 'This booking link does not exist or is no longer active.',
     loading: 'Loading...',
     engagements: { 'Heure': 'Hour', 'Demi-journée': 'Half-day', 'Journée': 'Full day' },
@@ -182,6 +196,13 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Por favor indica al menos tu nombre, apellido, teléfono y la fecha deseada.',
     successTitle: '¡Solicitud enviada!', successBody: (prenom, nom) => `¡Gracias ${prenom}! Tu solicitud de clase ha sido enviada. ${nom} la confirmará y se pondrá en contacto contigo por teléfono o correo.`,
     newRequest: 'Hacer una nueva solicitud', high: 'temporada alta', low: 'temporada baja',
+    paymentMethod: 'Metodo de pago', payCard: 'Tarjeta', payCash: 'Efectivo',
+    depositNote: 'Se requiere un deposito del 15% para confirmar una reserva pagada en efectivo.',
+    depositAmountLabel: (s) => `Importe del deposito: ${s}`,
+    payDepositButton: 'Pagar el deposito y confirmar', payingRedirect: 'Redirigiendo al pago seguro...',
+    paymentSuccessTitle: 'Deposito recibido!', paymentSuccessBody: (prenom, nom) => `Gracias ${prenom}! Tu deposito ha sido recibido. ${nom} confirmara tu reserva.`,
+    paymentCancelTitle: 'Pago cancelado', paymentCancelBody: 'El pago fue cancelado, tu reserva no ha sido confirmada. Puedes intentarlo de nuevo.',
+    retryPayment: 'Intentar de nuevo',
     notFoundTitle: 'Enlace no encontrado', notFoundBody: 'Este enlace de reserva no existe o ya no está activo.',
     loading: 'Cargando...',
     engagements: { 'Heure': 'Hora', 'Demi-journée': 'Media jornada', 'Journée': 'Jornada completa' },
@@ -203,6 +224,13 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Bitte gib mindestens Vorname, Nachname, Telefonnummer und gewünschtes Datum an.',
     successTitle: 'Anfrage gesendet!', successBody: (prenom, nom) => `Danke ${prenom}! Deine Kursanfrage wurde übermittelt. ${nom} wird sie bestätigen und sich telefonisch oder per E-Mail bei dir melden.`,
     newRequest: 'Neue Anfrage stellen', high: 'Hochsaison', low: 'Nebensaison',
+    paymentMethod: 'Zahlungsmethode', payCard: 'Karte', payCash: 'Bar',
+    depositNote: 'Fur eine bar bezahlte Buchung ist eine Anzahlung von 15% erforderlich.',
+    depositAmountLabel: (s) => `Anzahlungsbetrag: ${s}`,
+    payDepositButton: 'Anzahlung bezahlen und bestatigen', payingRedirect: 'Weiterleitung zur sicheren Zahlung...',
+    paymentSuccessTitle: 'Anzahlung erhalten!', paymentSuccessBody: (prenom, nom) => `Danke ${prenom}! Deine Anzahlung wurde erhalten. ${nom} wird deine Buchung bestatigen.`,
+    paymentCancelTitle: 'Zahlung abgebrochen', paymentCancelBody: 'Die Zahlung wurde abgebrochen, deine Buchung wurde nicht bestatigt. Du kannst es erneut versuchen.',
+    retryPayment: 'Erneut versuchen',
     notFoundTitle: 'Link nicht gefunden', notFoundBody: 'Dieser Buchungslink existiert nicht mehr oder ist nicht aktiv.',
     loading: 'Wird geladen...',
     engagements: { 'Heure': 'Stunde', 'Demi-journée': 'Halbtags', 'Journée': 'Ganztags' },
@@ -224,6 +252,13 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Indica almeno nome, cognome, telefono e data desiderata.',
     successTitle: 'Richiesta inviata!', successBody: (prenom, nom) => `Grazie ${prenom}! La tua richiesta di lezione è stata inviata. ${nom} la confermerà e ti ricontatterà per telefono o e-mail.`,
     newRequest: 'Fai una nuova richiesta', high: 'alta stagione', low: 'bassa stagione',
+    paymentMethod: 'Metodo di pagamento', payCard: 'Carta', payCash: 'Contanti',
+    depositNote: 'E richiesto un acconto del 15% per confermare una prenotazione pagata in contanti.',
+    depositAmountLabel: (s) => `Importo dell'acconto: ${s}`,
+    payDepositButton: "Paga l'acconto e conferma", payingRedirect: 'Reindirizzamento al pagamento sicuro...',
+    paymentSuccessTitle: 'Acconto ricevuto!', paymentSuccessBody: (prenom, nom) => `Grazie ${prenom}! Il tuo acconto e stato ricevuto. ${nom} confermera la tua prenotazione.`,
+    paymentCancelTitle: 'Pagamento annullato', paymentCancelBody: 'Il pagamento e stato annullato, la tua prenotazione non e stata confermata. Puoi riprovare.',
+    retryPayment: 'Riprova',
     notFoundTitle: 'Link non trovato', notFoundBody: 'Questo link di prenotazione non esiste più o non è attivo.',
     loading: 'Caricamento...',
     engagements: { 'Heure': 'Ora', 'Demi-journée': 'Mezza giornata', 'Journée': 'Giornata intera' },
@@ -245,6 +280,13 @@ title: 'Réserver un cours', subtitle: (nom) => `Remplis ce formulaire, ${nom} c
     errorRequired: 'Por favor indica pelo menos o teu nome, apelido, telefone e a data pretendida.',
     successTitle: 'Pedido enviado!', successBody: (prenom, nom) => `Obrigado ${prenom}! O teu pedido de aula foi enviado. ${nom} vai confirmá-lo e entrar em contacto por telefone ou e-mail.`,
     newRequest: 'Fazer um novo pedido', high: 'época alta', low: 'época baixa',
+    paymentMethod: 'Metodo de pagamento', payCard: 'Cartao', payCash: 'Dinheiro',
+    depositNote: 'E necessario um sinal de 15% para confirmar uma reserva paga em dinheiro.',
+    depositAmountLabel: (s) => `Valor do sinal: ${s}`,
+    payDepositButton: 'Pagar o sinal e confirmar', payingRedirect: 'A redirecionar para o pagamento seguro...',
+    paymentSuccessTitle: 'Sinal recebido!', paymentSuccessBody: (prenom, nom) => `Obrigado ${prenom}! O teu sinal foi recebido. ${nom} vai confirmar a tua reserva.`,
+    paymentCancelTitle: 'Pagamento cancelado', paymentCancelBody: 'O pagamento foi cancelado, a tua reserva nao foi confirmada. Podes tentar novamente.',
+    retryPayment: 'Tentar novamente',
     notFoundTitle: 'Link não encontrado', notFoundBody: 'Este link de reserva não existe ou já não está ativo.',
     loading: 'A carregar...',
     engagements: { 'Heure': 'Hora', 'Demi-journée': 'Meio-dia', 'Journée': 'Dia inteiro' },
@@ -273,10 +315,21 @@ async function postPublicBooking(slug, reservation) {
   return data; // { ok, id }
 }
 
+async function createDepositSession(slug, reservationId, amount, devise) {
+  const res = await fetch('/api/create-deposit-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ slug, reservationId, amount, devise })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+  return data; // { url }
+}
+
 const emptyForm = {
   prenom: '', nom: '', telephone: '', email: '', nationalite: '', langue: 'Français', age: '',
   discipline: 'Ski', niveau: 'Débutant', nbPersonnes: 1, station: STATIONS[0],
-  date: toKey(new Date()), type: 'Heure', creneau: 'Matin', message: ''
+  date: toKey(new Date()), type: 'Heure', creneau: 'Matin', modePaiement: 'Carte', message: ''
 };
 
 export default function BookingPage({ slug }) {
@@ -289,9 +342,13 @@ export default function BookingPage({ slug }) {
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [paymentReturn, setPaymentReturn] = useState(null); // 'succes' | 'annule' | null
   const t = T[uiLang];
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paiementStatus = params.get('paiement');
+    if (paiementStatus === 'succes' || paiementStatus === 'annule') setPaymentReturn(paiementStatus);
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap';
     link.rel = 'stylesheet'; document.head.appendChild(link);
@@ -347,6 +404,7 @@ export default function BookingPage({ slug }) {
     const rate = form.discipline === 'Ski' ? (high ? settings.tarifSkiHaute : settings.tarifSkiBasse) : (high ? settings.tarifSnowboardHaute : settings.tarifSnowboardBasse);
     return rate;
   })();
+  const depositAmount = Math.round(Number(estimate) * 0.15);
 
   const setType = (type) => {
     if (type === 'Journée' && !journeeFree) return;
@@ -373,11 +431,17 @@ export default function BookingPage({ slug }) {
       nationalite: form.nationalite, langue: form.langue, age: Number(form.age) || '', niveau: form.niveau,
       discipline: form.discipline, nbPersonnes: Number(form.nbPersonnes) || 1, station: form.station,
       pointRdv: '', date: form.date, type: form.type, creneau: form.creneau, heureDebut, heureFin,
-      prix: estimate,
+      prix: estimate, modePaiement: form.modePaiement,
+      ...(form.modePaiement === 'Espèces' ? { garantieMontant: depositAmount, garantieStatut: 'En attente' } : {}),
       notes: form.message ? `Demande en ligne (${uiLang.toUpperCase()}) : ${form.message}` : `Demande envoyée via le formulaire en ligne (langue : ${uiLang.toUpperCase()}).`
     };
     try {
-      await postPublicBooking(slug, reservation);
+      const result = await postPublicBooking(slug, reservation);
+      if (form.modePaiement === 'Espèces') {
+        const { url } = await createDepositSession(slug, result.id, depositAmount, settings.devise);
+        window.location.href = url;
+        return;
+      }
       setLoading(false);
       setSent(true);
     } catch (e) {
@@ -417,6 +481,32 @@ const inputStyle = { border: `1px solid ${COLORS.iceLine}`, borderRadius: 9, pad
         <div style={{ maxWidth: 420, width: '100%', textAlign: 'center', background: '#fff', border: `1px solid ${COLORS.iceLine}`, borderRadius: 18, padding: '40px 32px' }}>
           <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 21, fontWeight: 700, color: COLORS.navy, marginBottom: 10 }}>{t.notFoundTitle}</h1>
           <p style={{ fontSize: 14.5, color: COLORS.inkSoft, lineHeight: 1.6 }}>{t.notFoundBody}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (paymentReturn === 'succes') {
+    return (
+      <div style={{ minHeight: '100vh', background: COLORS.snow, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ maxWidth: 420, width: '100%', textAlign: 'center', background: '#fff', border: `1px solid ${COLORS.iceLine}`, borderRadius: 18, padding: '40px 32px' }}>
+          <div style={{ width: 52, height: 52, borderRadius: '50%', background: COLORS.green + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
+            <CheckCircle2 size={26} color={COLORS.green} />
+          </div>
+          <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 21, fontWeight: 700, color: COLORS.navy, marginBottom: 10 }}>{t.paymentSuccessTitle}</h1>
+          <p style={{ fontSize: 14.5, color: COLORS.inkSoft, lineHeight: 1.6 }}>{t.paymentSuccessBody(form.prenom, settings.nom)}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (paymentReturn === 'annule') {
+    return (
+      <div style={{ minHeight: '100vh', background: COLORS.snow, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ maxWidth: 420, width: '100%', textAlign: 'center', background: '#fff', border: `1px solid ${COLORS.iceLine}`, borderRadius: 18, padding: '40px 32px' }}>
+          <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 21, fontWeight: 700, color: COLORS.navy, marginBottom: 10 }}>{t.paymentCancelTitle}</h1>
+          <p style={{ fontSize: 14.5, color: COLORS.inkSoft, lineHeight: 1.6 }}>{t.paymentCancelBody}</p>
+          <button onClick={() => setPaymentReturn(null)} style={{ marginTop: 24, background: COLORS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t.retryPayment}</button>
         </div>
       </div>
     );
@@ -517,12 +607,22 @@ const inputStyle = { border: `1px solid ${COLORS.iceLine}`, borderRadius: 9, pad
               <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.navy }}>{fmtEUR(estimate, settings.devise)}</span>
             </div>
           </div>
+{field(t.paymentMethod, <div style={{ display: 'flex', gap: 8 }}>
+  <button type="button" onClick={() => setForm(f => ({ ...f, modePaiement: 'Carte' }))} style={{ flex: 1, padding: '9px 8px', borderRadius: 9, cursor: 'pointer', fontSize: 13, fontWeight: 600, border: `1px solid ${form.modePaiement === 'Carte' ? COLORS.glacier : COLORS.iceLine}`, background: form.modePaiement === 'Carte' ? COLORS.glacier + '18' : '#fff', color: form.modePaiement === 'Carte' ? COLORS.glacierDeep : COLORS.ink }}>{t.payCard}</button>
+  <button type="button" onClick={() => setForm(f => ({ ...f, modePaiement: 'Espèces' }))} style={{ flex: 1, padding: '9px 8px', borderRadius: 9, cursor: 'pointer', fontSize: 13, fontWeight: 600, border: `1px solid ${form.modePaiement === 'Espèces' ? COLORS.glacier : COLORS.iceLine}`, background: form.modePaiement === 'Espèces' ? COLORS.glacier + '18' : '#fff', color: form.modePaiement === 'Espèces' ? COLORS.glacierDeep : COLORS.ink }}>{t.payCash}</button>
+</div>)}
+{form.modePaiement === 'Espèces' && (
+  <div style={{ fontSize: 12.5, color: COLORS.navy, background: COLORS.glacier + '12', borderRadius: 8, padding: '9px 11px' }}>
+    {t.depositNote} {t.depositAmountLabel(fmtEUR(depositAmount, settings.devise))}
+  </div>
+)}
+
 {field(t.message, <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} value={form.message} onChange={set('message')} placeholder={t.messagePh} />)}
 
           {error && <div style={{ fontSize: 13, color: COLORS.amber, background: COLORS.amber + '15', borderRadius: 8, padding: '10px 12px' }}>{error}</div>}
 
           <button onClick={handleSubmit} disabled={loading || noAvailabilityAtAll} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '13px', fontSize: 14.5, fontWeight: 600, cursor: (loading || noAvailabilityAtAll) ? 'default' : 'pointer', opacity: (loading || noAvailabilityAtAll) ? 0.6 : 1 }}>
-            <Send size={16} /> {loading ? t.submitting : t.submit}
+            <Send size={16} /> {loading ? (form.modePaiement === 'Espèces' ? t.payingRedirect : t.submitting) : (form.modePaiement === 'Espèces' ? t.payDepositButton : t.submit)}
           </button>
           <p style={{ fontSize: 11.5, color: COLORS.inkSoft, textAlign: 'center' }}>{t.paymentNote(settings.nom)}</p>
         </div>
