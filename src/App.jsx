@@ -1052,7 +1052,7 @@ function MonthGrid({ anchor, reservations, onDayClick, C, langue }) {
         {days.map(d => {
           const key = toKey(d); const count = countFor(key); const inMonth = d.getMonth() === month;
           return (
-            <div key={key} onClick={() => onDayClick(key)} style={{ minHeight: 84, borderRight: `1px solid ${C.iceLine}`, borderBottom: `1px solid ${C.iceLine}`, padding: 8, cursor: 'pointer', background: inMonth ? C.card : C.snowDim, opacity: inMonth ? 1 : 0.55 }}>
+            <div key={key} onClick={() => onDayClick(key)} style={{ height: 84, borderRight: `1px solid ${C.iceLine}`, borderBottom: `1px solid ${C.iceLine}`, padding: 8, cursor: 'pointer', background: inMonth ? C.card : C.snowDim, opacity: inMonth ? 1 : 0.55, overflow: 'hidden' }}>
               <div style={{ fontSize: 12.5, fontWeight: key === toKey(new Date()) ? 700 : 500, color: key === toKey(new Date()) ? ACCENTS.glacier : C.ink }}>{d.getDate()}</div>
               {count > 0 && <div style={{ marginTop: 6, fontSize: 11, fontWeight: 600, color: ACCENTS.glacierDeep, background: C.ice, display: 'inline-block', padding: '2px 7px', borderRadius: 100 }}>{count} {tUI('lessonsCount', langue)}</div>}
             </div>
@@ -1177,8 +1177,9 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
       {view === 'month' ? (
         <MonthGrid anchor={anchor} reservations={reservations} onDayClick={(key) => { setAnchor(new Date(key + 'T00:00:00')); setView('day'); }} C={C} langue={langue} />
       ) : (
-        <div className="cal-scroll" style={{ background: C.card, border: `1px solid ${C.iceLine}`, borderRadius: 14, overflow: 'hidden' }}>
-          <div className={view === 'week' ? 'cal-min' : ''}>
+        <div style={{ background: C.card, border: `1px solid ${C.iceLine}`, borderRadius: 14, overflow: 'hidden' }}>
+          <div className="cal-scroll">
+            <div className={view === 'week' ? 'cal-min' : ''}>
             <div style={{ display: 'flex' }}>
               <div style={{ width: 52, flexShrink: 0 }} />
               {(view === 'week' ? weekDays : [anchor]).map(d => (
@@ -1193,6 +1194,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
               {(view === 'week' ? weekDays : [anchor]).map(renderDayColumn)}
             </div>
           </div>
+        </div>
         </div>
       )}
       </BlurGate>
