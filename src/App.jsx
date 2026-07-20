@@ -589,12 +589,16 @@ const isSchoolHoliday = (dateKey, zone) => {
   });
 };
 
+const inManualRange = (md, start, end) => {
+  if (!start || !end) return false;
+  return start <= end ? (md >= start && md <= end) : (md >= start || md <= end);
+};
 const isHighSeason = (dateKey, settings) => {
   if (settings.seasonMode === 'manuel') {
     const md = monthDay(dateKey);
-    const start = settings.hauteSaisonDebut, end = settings.hauteSaisonFin;
-    if (!start || !end) return false;
-    return start <= end ? (md >= start && md <= end) : (md >= start || md <= end);
+    return inManualRange(md, settings.hauteSaisonDebut, settings.hauteSaisonFin)
+      || inManualRange(md, settings.hauteSaisonDebut2, settings.hauteSaisonFin2)
+      || inManualRange(md, settings.hauteSaisonDebut3, settings.hauteSaisonFin3);
   }
   return isSchoolHoliday(dateKey, settings.zoneVacances || 'Toutes');
 };
@@ -613,7 +617,7 @@ const DEFAULT_SETTINGS = {
   matinDebut: '09:00', matinFin: '12:30', apresMidiDebut: '13:30', apresMidiFin: '17:00',
   tarifSkiHaute: 75, tarifSkiBasse: 55, tarifSnowboardHaute: 80, tarifSnowboardBasse: 60,
   tarifDemiJourneeHaute: 210, tarifDemiJourneeBasse: 150, tarifJourneeHaute: 370, tarifJourneeBasse: 270,
-  hauteSaisonDebut: '12-20', hauteSaisonFin: '02-28', seasonMode: 'vacances', zoneVacances: 'Toutes',
+  hauteSaisonDebut: '12-20', hauteSaisonFin: '02-28', hauteSaisonDebut2: '', hauteSaisonFin2: '', hauteSaisonDebut3: '', hauteSaisonFin3: '', seasonMode: 'vacances', zoneVacances: 'Toutes',
   joursRepos: ['Dimanche'], theme: 'light',
   notifEmail: true, notifSMS: false
 };
@@ -1619,11 +1623,22 @@ function ParametresView({ settings, onSave, C, subscribed }) {
             </div>
           ) : (
             <div>
+              <p style={{ fontSize: 12, fontWeight: 700, color: C.inkSoft, marginBottom: 6 }}>Période 1</p>
               <div className="form-grid-2">
                 {field(tUI('labelDebutHauteSaison', langue), <input style={inputStyle} placeholder="12-20" value={form.hauteSaisonDebut} onChange={set('hauteSaisonDebut')} />)}
                 {field(tUI('labelFinHauteSaison', langue), <input style={inputStyle} placeholder="02-28" value={form.hauteSaisonFin} onChange={set('hauteSaisonFin')} />)}
               </div>
-              <p style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 10 }}>{tUI('seasonExplainManual', langue)}</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: C.inkSoft, margin: '14px 0 6px' }}>Période 2</p>
+              <div className="form-grid-2">
+                {field(tUI('labelDebutHauteSaison', langue), <input style={inputStyle} placeholder="02-06" value={form.hauteSaisonDebut2} onChange={set('hauteSaisonDebut2')} />)}
+                {field(tUI('labelFinHauteSaison', langue), <input style={inputStyle} placeholder="03-08" value={form.hauteSaisonFin2} onChange={set('hauteSaisonFin2')} />)}
+              </div>
+              <p style={{ fontSize: 12, fontWeight: 700, color: C.inkSoft, margin: '14px 0 6px' }}>Période 3</p>
+              <div className="form-grid-2">
+                {field(tUI('labelDebutHauteSaison', langue), <input style={inputStyle} placeholder="04-03" value={form.hauteSaisonDebut3} onChange={set('hauteSaisonDebut3')} />)}
+                {field(tUI('labelFinHauteSaison', langue), <input style={inputStyle} placeholder="05-03" value={form.hauteSaisonFin3} onChange={set('hauteSaisonFin3')} />)}
+              </div>
+              <p style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 10 }}>{tUI('seasonExplainManual', langue)} (jusqu'à 3 périodes, laisser vide si non utilisée)</p>
             </div>
           )}
         </div>

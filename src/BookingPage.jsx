@@ -58,7 +58,7 @@ const DEFAULT_SETTINGS = {
   matinDebut: '09:00', matinFin: '12:30', apresMidiDebut: '13:30', apresMidiFin: '17:00',
   tarifSkiHaute: 75, tarifSkiBasse: 55, tarifSnowboardHaute: 80, tarifSnowboardBasse: 60,
   tarifDemiJourneeHaute: 210, tarifDemiJourneeBasse: 150, tarifJourneeHaute: 370, tarifJourneeBasse: 270,
-  seasonMode: 'vacances', zoneVacances: 'Toutes', hauteSaisonDebut: '12-20', hauteSaisonFin: '02-28'
+  seasonMode: 'vacances', zoneVacances: 'Toutes', hauteSaisonDebut: '12-20', hauteSaisonFin: '02-28', hauteSaisonDebut2: '', hauteSaisonFin2: '', hauteSaisonDebut3: '', hauteSaisonFin3: ''
 };
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -109,11 +109,16 @@ const SCHOOL_HOLIDAYS = [
 ];
 const inRange = (dateKey, [start, end]) => dateKey >= start && dateKey <= end;
 const isSchoolHoliday = (dateKey, zone) => SCHOOL_HOLIDAYS.some(p => zone === 'Toutes' ? (inRange(dateKey, p.A) || inRange(dateKey, p.B) || inRange(dateKey, p.C)) : inRange(dateKey, p[zone]));
+const inManualRange = (md, start, end) => {
+  if (!start || !end) return false;
+  return start <= end ? (md >= start && md <= end) : (md >= start || md <= end);
+};
 const isHighSeason = (dateKey, settings) => {
   if (settings.seasonMode === 'manuel') {
-    const md = monthDay(dateKey); const start = settings.hauteSaisonDebut, end = settings.hauteSaisonFin;
-    if (!start || !end) return false;
-    return start <= end ? (md >= start && md <= end) : (md >= start || md <= end);
+    const md = monthDay(dateKey);
+    return inManualRange(md, settings.hauteSaisonDebut, settings.hauteSaisonFin)
+      || inManualRange(md, settings.hauteSaisonDebut2, settings.hauteSaisonFin2)
+      || inManualRange(md, settings.hauteSaisonDebut3, settings.hauteSaisonFin3);
   }
   return isSchoolHoliday(dateKey, settings.zoneVacances || 'Toutes');
 };
