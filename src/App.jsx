@@ -1073,9 +1073,28 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
   const byDate = useCallback((key) => reservations.filter(r => r.date === key && r.statut !== 'Annulée'), [reservations]);
   const [drag, setDrag] = useState(null);
   const didDragRef = useRef(false);
+  const getClientY = (e) => (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+  const startDrag = (ev, mode) => (e) => {
+    e.stopPropagation();
+    const origStart = timeToMinutes(ev.heureDebut) - DAY_START * 60;
+    const origEnd = timeToMinutes(ev.heureFin) - DAY_START * 60;
+    if (e.touches && mode === 'move') {
+      const startY = getClientY(e);
+      let touchEnded = false;
+      const onEarlyEnd = () => { touchEnded = true; window.removeEventListener('touchend', onEarlyEnd); };
+      window.addEventListener('touchend', onEarlyEnd);
+      setTimeout(() => {
+        window.removeEventListener('touchend', onEarlyEnd);
+        if (!touchEnded) setDrag({ id: ev.id, ev, mode, startY, origStart, origEnd, deltaMin: 0 });
+      }, 400);
+      return;
+    }
+    if (e.touches) e.preventDefault();
+    setDrag({ id: ev.id, ev, mode, startY: getClientY(e), origStart, origEnd, deltaMin: 0 });
+  };
   useEffect(() => {
     if (!drag) return;
-    const onMove = (e) => setDrag(d => (d ? { ...d, deltaMin: Math.round(((e.clientY - d.startY) / ROW_HEIGHT) * 60 / 30) * 30 } : d));
+    const onMove = (e) => { if (e.touches) e.preventDefault(); setDrag(d => (d ? { ...d, deltaMin: Math.round(((getClientY(e) - d.startY) / ROW_HEIGHT) * 60 / 30) * 30 } : d)); };
     const onUp = () => setDrag(d => {
       if (!d) return null;
       const deltaMin = d.deltaMin || 0;
@@ -1083,7 +1102,8 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
         didDragRef.current = true;
         let newStart = d.origStart, newEnd = d.origEnd;
         if (d.mode === 'move') { newStart = d.origStart + deltaMin; newEnd = d.origEnd + deltaMin; }
-        else { newEnd = Math.max(d.origStart + 30, d.origEnd + deltaMin); }
+        else if (d.mode === 'resize-bottom') { newEnd = Math.max(d.origStart + 30, d.origEnd + deltaMin); }
+        else { newStart = Math.min(d.origEnd - 30, d.origStart + deltaMin); }
         newStart = Math.max(0, newStart);
         newEnd = Math.min((DAY_END - DAY_START) * 60, newEnd);
         const heureDebut = minutesToTime(newStart + DAY_START * 60);
@@ -1097,7 +1117,14 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
     });
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
-    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
   }, [drag, onAbsenceUpdate]);
   const navigate = (dir) => { if (view === 'month') setAnchor(d => { const x = new Date(d); x.setMonth(x.getMonth() + dir); return x; }); else if (view === 'week') setAnchor(d => addDays(d, dir * 7)); else setAnchor(d => addDays(d, dir)); };
   const label = view === 'month' ? anchor.toLocaleDateString(locale, { month: 'long', year: 'numeric' }) : view === 'week' ? `${weekDays[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })} — ${weekDays[6].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}` : anchor.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
@@ -1112,16 +1139,19 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
           const dMin = isDragging ? (drag.deltaMin || 0) : 0;
           let startM = timeToMinutes(ev.heureDebut) - DAY_START * 60, endM = timeToMinutes(ev.heureFin) - DAY_START * 60;
           if (isDragging && drag.mode === 'move') { startM += dMin; endM += dMin; }
-          else if (isDragging && drag.mode === 'resize') { endM = Math.max(startM + 30, endM + dMin); }
+          else if (isDragging && drag.mode === 'resize-bottom') { endM = Math.max(startM + 30, endM + dMin); }
+          else if (isDragging && drag.mode === 'resize-top') { startM = Math.min(endM - 30, startM + dMin); }
           const top = (startM / 60) * ROW_HEIGHT, height = Math.max(((endM - startM) / 60) * ROW_HEIGHT, 24);
           return (
             <div key={ev.id}
-              onMouseDown={ev.absence ? (e) => { e.stopPropagation(); setDrag({ id: ev.id, ev, mode: 'move', startY: e.clientY, origStart: timeToMinutes(ev.heureDebut) - DAY_START * 60, origEnd: timeToMinutes(ev.heureFin) - DAY_START * 60, deltaMin: 0 }); } : undefined}
+              onMouseDown={ev.absence ? startDrag(ev, 'move') : undefined}
+              onTouchStart={ev.absence ? startDrag(ev, 'move') : undefined}
               onClick={(e) => { e.stopPropagation(); if (didDragRef.current) { didDragRef.current = false; return; } onEventClick(ev); }}
-              style={{ position: 'absolute', top, height, left: 4, right: 4, background: ev.absence ? C.snowDim : C.card, borderLeft: `3px solid ${ev.absence ? C.inkSoft : disciplineColor(ev.discipline)}`, borderRadius: 6, padding: '4px 7px', boxShadow: '0 2px 8px -3px rgba(0,0,0,0.25)', cursor: ev.absence ? 'grab' : 'pointer', overflow: 'hidden', zIndex: isDragging ? 5 : 2 }}>
+              style={{ position: 'absolute', top, height, left: 4, right: 4, background: ev.absence ? C.snowDim : C.card, borderLeft: `3px solid ${ev.absence ? C.inkSoft : disciplineColor(ev.discipline)}`, borderRadius: 6, padding: '4px 7px', boxShadow: '0 2px 8px -3px rgba(0,0,0,0.25)', cursor: ev.absence ? 'grab' : 'pointer', overflow: 'hidden', zIndex: isDragging ? 5 : 2, touchAction: ev.absence ? 'none' : 'auto' }}>
+              {ev.absence && <div onMouseDown={startDrag(ev, 'resize-top')} onTouchStart={startDrag(ev, 'resize-top')} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />}
               <div style={{ fontSize: 11.5, fontWeight: 700, color: ev.absence ? C.inkSoft : C.navy, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.absence ? 'Indisponible' : `${ev.prenom} ${ev.nom}`}</div>
               <div style={{ fontSize: 10.5, color: C.inkSoft }}>{fmtHeure(minutesToTime(startM + DAY_START * 60), langue)}–{fmtHeure(minutesToTime(endM + DAY_START * 60), langue)}</div>
-              {ev.absence && <div onMouseDown={(e) => { e.stopPropagation(); setDrag({ id: ev.id, ev, mode: 'resize', startY: e.clientY, origStart: timeToMinutes(ev.heureDebut) - DAY_START * 60, origEnd: timeToMinutes(ev.heureFin) - DAY_START * 60, deltaMin: 0 }); }} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 8, cursor: 'ns-resize' }} />}
+              {ev.absence && <div onMouseDown={startDrag(ev, 'resize-bottom')} onTouchStart={startDrag(ev, 'resize-bottom')} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />}
             </div>
           );
         })}
