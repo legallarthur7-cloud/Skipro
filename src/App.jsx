@@ -685,6 +685,7 @@ const RESPONSIVE_CSS = `
   .clients-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
   .form-grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .form-grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  .form-grid-2 > div, .form-grid-3 > div{ min-width:0; }
   .header-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
   .cal-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
   .cal-min{ min-width:680px; }
@@ -794,7 +795,7 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
   const high = isHighSeason(form.date, settings);
   const hourlyHint = form.type === 'Heure' ? (form.discipline === 'Ski' ? (high ? settings.tarifSkiHaute : settings.tarifSkiBasse) : (high ? settings.tarifSnowboardHaute : settings.tarifSnowboardBasse)) : null;
 
-  const inputStyle = { border: `1px solid ${C.iceLine}`, borderRadius: 8, padding: '8px 10px', fontSize: 14, fontFamily: 'Inter, sans-serif', color: C.ink, background: C.card };
+  const inputStyle = { border: `1px solid ${C.iceLine}`, borderRadius: 8, padding: '8px 10px', fontSize: 14, fontFamily: 'Inter, sans-serif', color: C.ink, background: C.card, width: '100%', boxSizing: 'border-box' };
   const disabledStyle = { ...inputStyle, background: C.snowDim, color: C.inkSoft };
   const field = (label, input) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
