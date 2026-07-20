@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from './lib/storage-shim.js';
 import {
   LayoutDashboard, Calendar as CalendarIcon, Users, User, Settings as SettingsIcon, Plus, X,
@@ -557,6 +557,7 @@ const toKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDat
 const startOfWeek = (d) => { const x = new Date(d); const day = (x.getDay() + 6) % 7; x.setDate(x.getDate() - day); x.setHours(0, 0, 0, 0); return x; };
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
 const timeToMinutes = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const minutesToTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 const minutesLabel = (mins) => { const h = Math.floor(mins / 60); const m = mins % 60; return m === 0 ? `${h}h` : `${h}h${pad(m)}`; };
 const fmtEUR = (n, devise = 'EUR') => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: devise, maximumFractionDigits: 0 }).format(n || 0);
 const fmtDateShort = (dateKey) => new Date(dateKey + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -1062,7 +1063,7 @@ function MonthGrid({ anchor, reservations, onDayClick, C, langue }) {
   );
 }
 
-function CalendarView({ reservations, onSlotClick, onEventClick, C, subscribed, langue }) {
+function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate, C, subscribed, langue }) {
   const locale = LOCALE_MAP[langue] || 'fr-FR';
   const [view, setView] = useState('week');
   const [anchor, setAnchor] = useState(new Date());
@@ -1070,6 +1071,34 @@ function CalendarView({ reservations, onSlotClick, onEventClick, C, subscribed, 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const hours = Array.from({ length: DAY_END - DAY_START }, (_, i) => DAY_START + i);
   const byDate = useCallback((key) => reservations.filter(r => r.date === key && r.statut !== 'Annulée'), [reservations]);
+  const [drag, setDrag] = useState(null);
+  const didDragRef = useRef(false);
+  useEffect(() => {
+    if (!drag) return;
+    const onMove = (e) => setDrag(d => (d ? { ...d, deltaMin: Math.round(((e.clientY - d.startY) / ROW_HEIGHT) * 60 / 30) * 30 } : d));
+    const onUp = () => setDrag(d => {
+      if (!d) return null;
+      const deltaMin = d.deltaMin || 0;
+      if (deltaMin !== 0) {
+        didDragRef.current = true;
+        let newStart = d.origStart, newEnd = d.origEnd;
+        if (d.mode === 'move') { newStart = d.origStart + deltaMin; newEnd = d.origEnd + deltaMin; }
+        else { newEnd = Math.max(d.origStart + 30, d.origEnd + deltaMin); }
+        newStart = Math.max(0, newStart);
+        newEnd = Math.min((DAY_END - DAY_START) * 60, newEnd);
+        const heureDebut = minutesToTime(newStart + DAY_START * 60);
+        const heureFin = minutesToTime(newEnd + DAY_START * 60);
+        const msg = d.mode === 'move'
+          ? `Êtes-vous sûr de vouloir déplacer cette indisponibilité à ${heureDebut}–${heureFin} ?`
+          : `Êtes-vous sûr de vouloir modifier la durée de cette indisponibilité à ${heureDebut}–${heureFin} ?`;
+        if (window.confirm(msg)) onAbsenceUpdate({ ...d.ev, heureDebut, heureFin });
+      }
+      return null;
+    });
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [drag, onAbsenceUpdate]);
   const navigate = (dir) => { if (view === 'month') setAnchor(d => { const x = new Date(d); x.setMonth(x.getMonth() + dir); return x; }); else if (view === 'week') setAnchor(d => addDays(d, dir * 7)); else setAnchor(d => addDays(d, dir)); };
   const label = view === 'month' ? anchor.toLocaleDateString(locale, { month: 'long', year: 'numeric' }) : view === 'week' ? `${weekDays[0].toLocaleDateString(locale, { day: 'numeric', month: 'short' })} — ${weekDays[6].toLocaleDateString(locale, { day: 'numeric', month: 'short' })}` : anchor.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -1079,12 +1108,20 @@ function CalendarView({ reservations, onSlotClick, onEventClick, C, subscribed, 
       <div key={key} style={{ flex: 1, position: 'relative', borderLeft: `1px solid ${C.iceLine}` }}>
         {hours.map(h => <div key={h} onClick={() => onSlotClick(key, `${pad(h)}:00`)} style={{ height: ROW_HEIGHT, borderBottom: `1px solid ${C.iceLine}`, cursor: 'pointer' }} />)}
         {events.map(ev => {
-          const startM = timeToMinutes(ev.heureDebut) - DAY_START * 60, endM = timeToMinutes(ev.heureFin) - DAY_START * 60;
+          const isDragging = drag && drag.id === ev.id;
+          const dMin = isDragging ? (drag.deltaMin || 0) : 0;
+          let startM = timeToMinutes(ev.heureDebut) - DAY_START * 60, endM = timeToMinutes(ev.heureFin) - DAY_START * 60;
+          if (isDragging && drag.mode === 'move') { startM += dMin; endM += dMin; }
+          else if (isDragging && drag.mode === 'resize') { endM = Math.max(startM + 30, endM + dMin); }
           const top = (startM / 60) * ROW_HEIGHT, height = Math.max(((endM - startM) / 60) * ROW_HEIGHT, 24);
           return (
-            <div key={ev.id} onClick={(e) => { e.stopPropagation(); onEventClick(ev); }} style={{ position: 'absolute', top, height, left: 4, right: 4, background: ev.absence ? C.snowDim : C.card, borderLeft: `3px solid ${ev.absence ? C.inkSoft : disciplineColor(ev.discipline)}`, borderRadius: 6, padding: '4px 7px', boxShadow: '0 2px 8px -3px rgba(0,0,0,0.25)', cursor: 'pointer', overflow: 'hidden', zIndex: 2 }}>
+            <div key={ev.id}
+              onMouseDown={ev.absence ? (e) => { e.stopPropagation(); setDrag({ id: ev.id, ev, mode: 'move', startY: e.clientY, origStart: timeToMinutes(ev.heureDebut) - DAY_START * 60, origEnd: timeToMinutes(ev.heureFin) - DAY_START * 60, deltaMin: 0 }); } : undefined}
+              onClick={(e) => { e.stopPropagation(); if (didDragRef.current) { didDragRef.current = false; return; } onEventClick(ev); }}
+              style={{ position: 'absolute', top, height, left: 4, right: 4, background: ev.absence ? C.snowDim : C.card, borderLeft: `3px solid ${ev.absence ? C.inkSoft : disciplineColor(ev.discipline)}`, borderRadius: 6, padding: '4px 7px', boxShadow: '0 2px 8px -3px rgba(0,0,0,0.25)', cursor: ev.absence ? 'grab' : 'pointer', overflow: 'hidden', zIndex: isDragging ? 5 : 2 }}>
               <div style={{ fontSize: 11.5, fontWeight: 700, color: ev.absence ? C.inkSoft : C.navy, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.absence ? 'Indisponible' : `${ev.prenom} ${ev.nom}`}</div>
-              <div style={{ fontSize: 10.5, color: C.inkSoft }}>{fmtHeure(ev.heureDebut, langue)}–{fmtHeure(ev.heureFin, langue)}</div>
+              <div style={{ fontSize: 10.5, color: C.inkSoft }}>{fmtHeure(minutesToTime(startM + DAY_START * 60), langue)}–{fmtHeure(minutesToTime(endM + DAY_START * 60), langue)}</div>
+              {ev.absence && <div onMouseDown={(e) => { e.stopPropagation(); setDrag({ id: ev.id, ev, mode: 'resize', startY: e.clientY, origStart: timeToMinutes(ev.heureDebut) - DAY_START * 60, origEnd: timeToMinutes(ev.heureFin) - DAY_START * 60, deltaMin: 0 }); }} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 8, cursor: 'ns-resize' }} />}
             </div>
           );
         })}
@@ -2013,7 +2050,7 @@ export default function App() {
         ) : tab === 'dashboard' ? (
           <Dashboard reservations={realReservations} onNewReservation={() => openNew()} C={C} devise={settings.devise} subscribed={subscribed} langue={settings.langue} />
         ) : tab === 'calendar' ? (
-          <CalendarView reservations={reservations} onSlotClick={openNew} onEventClick={openEdit} C={C} subscribed={subscribed} langue={settings.langue} />
+          <CalendarView reservations={reservations} onSlotClick={openNew} onEventClick={openEdit} onAbsenceUpdate={handleUpdate} C={C} subscribed={subscribed} langue={settings.langue} />
         ) : tab === 'reservations' ? (
           <ReservationsView reservations={realReservations} onNew={() => openNew()} onEdit={openEdit} C={C} devise={settings.devise} langue={settings.langue} />
         ) : tab === 'clients' ? (
