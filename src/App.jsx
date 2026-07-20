@@ -547,7 +547,7 @@ function getCreneaux(settings) {
     'Après-midi': [settings.apresMidiDebut || '13:30', settings.apresMidiFin || '17:00']
   };
 }
-const JOURNEE_HOURS = ['09:00', '16:30'];
+const JOURNEE_HOURS = ['09:00', '17:00'];
 
 /* ==================================================================================
    HELPERS
@@ -795,6 +795,11 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
     const date = e.target.value;
     setForm(f => ({ ...f, date, prix: f.type !== 'Heure' ? priceForType(f.type, f.creneau, date) : f.prix }));
   };
+  const setDuree = (mins) => {
+    const start = timeToMinutes(form.heureDebut || '09:00');
+    const total = start + mins;
+    setForm(f => ({ ...f, heureFin: `${pad(Math.floor(total / 60))}:${pad(total % 60)}` }));
+  };
 
   const high = isHighSeason(form.date, settings);
   const hourlyHint = form.type === 'Heure' ? (form.discipline === 'Ski' ? (high ? settings.tarifSkiHaute : settings.tarifSkiBasse) : (high ? settings.tarifSnowboardHaute : settings.tarifSnowboardBasse)) : null;
@@ -836,6 +841,18 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
                   background: form.creneau === cren ? ACCENTS.glacier + '18' : C.card,
                   color: form.creneau === cren ? ACCENTS.glacierDeep : C.ink
                 }}>{creneauLabel(cren)} ({fmtHeure(CRENEAUX[cren][0], langue)}–{fmtHeure(CRENEAUX[cren][1], langue)})</button>
+              ))}
+            </div>
+          )}
+          {form.type === 'Heure' && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              {[60, 90, 120].map(d => (
+                <button key={d} type="button" onClick={() => setDuree(d)} style={{
+                  flex: 1, padding: '8px', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                  border: `1px solid ${duration === minutesLabel(d) ? ACCENTS.glacier : C.iceLine}`,
+                  background: duration === minutesLabel(d) ? ACCENTS.glacier + '18' : C.card,
+                  color: duration === minutesLabel(d) ? ACCENTS.glacierDeep : C.ink
+                }}>{d === 60 ? '1h' : d === 90 ? '1h30' : '2h'}</button>
               ))}
             </div>
           )}

@@ -41,7 +41,7 @@ const DISCIPLINES = ['Ski', 'Snowboard'];
 const NIVEAUX = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
 const ENGAGEMENTS = ['Heure', 'Demi-journée', 'Journée'];
 const CRENEAUX_KEYS = ['Matin', 'Après-midi'];
-const JOURNEE_HOURS = ['09:00', '16:30'];
+const JOURNEE_HOURS = ['09:00', '17:00'];
 const LANGUES_CANON = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
 
 // Créneaux demi-journée : dépendent des horaires personnalisés du moniteur (Paramètres > Horaires),
