@@ -41,7 +41,6 @@ const DISCIPLINES = ['Ski', 'Snowboard'];
 const NIVEAUX = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
 const ENGAGEMENTS = ['Heure', 'Demi-journée', 'Journée'];
 const CRENEAUX_KEYS = ['Matin', 'Après-midi'];
-const JOURNEE_HOURS = ['09:00', '16:30'];
 const LANGUES_CANON = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
 
 // Créneaux demi-journée : dépendent des horaires personnalisés du moniteur (Paramètres > Horaires),
@@ -69,6 +68,8 @@ const timeToMinutes = (t) => { const [h, m] = t.split(':').map(Number); return h
 const minutesToTime = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 
 const HEURE_DURATION = 60; // durée par défaut d'un cours "Heure"
+const DUREE_OPTIONS = [60, 90, 120]; // 1h, 1h30, 2h
+const DUREE_LABELS = { 60: '1h', 90: '1h30', 120: '2h' };
 
 // busySlots vient de l'API publique : uniquement { date, heureDebut, heureFin } des réservations non annulées.
 const busyIntervals = (dateKey, busySlots) =>
@@ -76,11 +77,11 @@ const busyIntervals = (dateKey, busySlots) =>
 
 const overlaps = (start, end, intervals) => intervals.some(([s, e]) => start < e && end > s);
 
-const availableHourStarts = (dateKey, busySlots, workStart, workEnd) => {
+const availableHourStarts = (dateKey, busySlots, workStart, workEnd, duree = HEURE_DURATION) => {
   const busy = busyIntervals(dateKey, busySlots);
   const starts = [];
-  for (let m = workStart; m + HEURE_DURATION <= workEnd; m += 30) {
-    if (!overlaps(m, m + HEURE_DURATION, busy)) starts.push(m);
+  for (let m = workStart; m + duree <= workEnd; m += 30) {
+    if (!overlaps(m, m + duree, busy)) starts.push(m);
   }
   return starts;
 };
@@ -89,10 +90,11 @@ const isCreneauFree = (dateKey, creneau, busySlots, creneaux) => {
   const [s, e] = creneaux[creneau].map(timeToMinutes);
   return !overlaps(s, e, busy);
 };
-const isJourneeFree = (dateKey, busySlots) => {
+// Une "Journée" couvre toute la plage de travail du moniteur (matinDebut → apresMidiFin),
+// pour correspondre exactement à ses horaires configurés (8h par défaut : 09:00–17:00).
+const isJourneeFree = (dateKey, busySlots, workStart, workEnd) => {
   const busy = busyIntervals(dateKey, busySlots);
-  const [s, e] = JOURNEE_HOURS.map(timeToMinutes);
-  return !overlaps(s, e, busy);
+  return !overlaps(workStart, workEnd, busy);
 };
 
 const SCHOOL_HOLIDAYS = [
@@ -289,7 +291,9 @@ function computePrix(cours, settings) {
   const high = isHighSeason(cours.date, settings);
   if (cours.type === 'Journée') return high ? settings.tarifJourneeHaute : settings.tarifJourneeBasse;
   if (cours.type === 'Demi-journée') return high ? settings.tarifDemiJourneeHaute : settings.tarifDemiJourneeBasse;
-  return cours.discipline === 'Ski' ? (high ? settings.tarifSkiHaute : settings.tarifSkiBasse) : (high ? settings.tarifSnowboardHaute : settings.tarifSnowboardBasse);
+  const hourlyRate = cours.discipline === 'Ski' ? (high ? settings.tarifSkiHaute : settings.tarifSkiBasse) : (high ? settings.tarifSnowboardHaute : settings.tarifSnowboardBasse);
+  const duree = cours.duree || HEURE_DURATION;
+  return hourlyRate * (duree / 60);
 }
 
 const emptyForm = {
@@ -299,7 +303,7 @@ const emptyForm = {
 
 const emptyCoursDraft = {
   discipline: 'Ski', niveau: 'Débutant', date: toKey(new Date()), type: 'Heure', creneau: 'Matin',
-  heureDebut: '', heureFin: ''
+  duree: HEURE_DURATION, heureDebut: '', heureFin: ''
 };
 
 export default function BookingPage({ slug }) {
@@ -349,10 +353,10 @@ export default function BookingPage({ slug }) {
   const workStart = useMemo(() => timeToMinutes(settings.matinDebut || '09:00'), [settings]);
   const workEnd = useMemo(() => timeToMinutes(settings.apresMidiFin || '17:00'), [settings]);
 
-  const hourOptions = useMemo(() => availableHourStarts(coursDraft.date, combinedBusy, workStart, workEnd), [coursDraft.date, combinedBusy, workStart, workEnd]);
+  const hourOptions = useMemo(() => availableHourStarts(coursDraft.date, combinedBusy, workStart, workEnd, coursDraft.duree), [coursDraft.date, combinedBusy, workStart, workEnd, coursDraft.duree]);
   const matinFree = useMemo(() => isCreneauFree(coursDraft.date, 'Matin', combinedBusy, creneaux), [coursDraft.date, combinedBusy, creneaux]);
   const apremFree = useMemo(() => isCreneauFree(coursDraft.date, 'Après-midi', combinedBusy, creneaux), [coursDraft.date, combinedBusy, creneaux]);
-  const journeeFree = useMemo(() => isJourneeFree(coursDraft.date, combinedBusy), [coursDraft.date, combinedBusy]);
+  const journeeFree = useMemo(() => isJourneeFree(coursDraft.date, combinedBusy, workStart, workEnd), [coursDraft.date, combinedBusy, workStart, workEnd]);
   const noAvailabilityAtAll = hourOptions.length === 0 && !matinFree && !apremFree && !journeeFree;
 
   // Corrige automatiquement la sélection si elle devient indisponible (changement de date, ajout d'un cours, etc.)
@@ -361,14 +365,14 @@ export default function BookingPage({ slug }) {
       if (d.type === 'Heure') {
         if (hourOptions.length > 0 && !hourOptions.includes(timeToMinutes(d.heureDebut || '09:00'))) {
           const start = hourOptions[0];
-          return { ...d, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + HEURE_DURATION) };
+          return { ...d, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + d.duree) };
         }
       } else if (d.type === 'Demi-journée') {
         if (d.creneau === 'Matin' && !matinFree && apremFree) return { ...d, creneau: 'Après-midi', heureDebut: creneaux['Après-midi'][0], heureFin: creneaux['Après-midi'][1] };
         if (d.creneau === 'Après-midi' && !apremFree && matinFree) return { ...d, creneau: 'Matin', heureDebut: creneaux['Matin'][0], heureFin: creneaux['Matin'][1] };
       } else if (d.type === 'Journée' && !journeeFree && hourOptions.length > 0) {
         const start = hourOptions[0];
-        return { ...d, type: 'Heure', heureDebut: minutesToTime(start), heureFin: minutesToTime(start + HEURE_DURATION) };
+        return { ...d, type: 'Heure', heureDebut: minutesToTime(start), heureFin: minutesToTime(start + (d.duree || HEURE_DURATION)) };
       }
       return d;
     });
@@ -379,23 +383,34 @@ export default function BookingPage({ slug }) {
   const setType = (type) => {
     if (type === 'Journée' && !journeeFree) return;
     setCoursDraft(d => {
-      if (type === 'Journée') return { ...d, type, heureDebut: JOURNEE_HOURS[0], heureFin: JOURNEE_HOURS[1] };
+      if (type === 'Journée') return { ...d, type, heureDebut: minutesToTime(workStart), heureFin: minutesToTime(workEnd) };
       if (type === 'Demi-journée') {
         const cren = matinFree ? 'Matin' : (apremFree ? 'Après-midi' : (d.creneau || 'Matin'));
         return { ...d, type, creneau: cren, heureDebut: creneaux[cren][0], heureFin: creneaux[cren][1] };
       }
       const start = hourOptions[0];
-      return start !== undefined ? { ...d, type, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + HEURE_DURATION) } : { ...d, type };
+      return start !== undefined ? { ...d, type, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + d.duree) } : { ...d, type };
     });
   };
   const setCreneau = (cren) => { if ((cren === 'Matin' && !matinFree) || (cren === 'Après-midi' && !apremFree)) return; setCoursDraft(d => ({ ...d, creneau: cren, heureDebut: creneaux[cren][0], heureFin: creneaux[cren][1] })); };
-  const setHeureDebut = (e) => { const start = Number(e.target.value); setCoursDraft(d => ({ ...d, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + HEURE_DURATION) })); };
+  const setHeureDebut = (e) => { const start = Number(e.target.value); setCoursDraft(d => ({ ...d, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + d.duree) })); };
+  const setDuree = (mins) => {
+    setCoursDraft(d => {
+      const start = timeToMinutes(d.heureDebut || minutesToTime(workStart));
+      return { ...d, duree: mins, heureFin: minutesToTime(start + mins) };
+    });
+  };
 
   const addCours = () => {
     const heureDebut = coursDraft.heureDebut || creneaux['Matin'][0];
     const heureFin = coursDraft.heureFin || creneaux['Matin'][1];
     const prix = computePrix(coursDraft, settings);
     setCoursList(list => [...list, { ...coursDraft, heureDebut, heureFin, prix, uid: `${Date.now()}-${Math.random()}` }]);
+    // On efface juste l'heure choisie (on garde la date/discipline/type) : le useEffect au-dessus
+    // recalcule alors le prochain créneau réellement libre, au lieu de re-proposer celui qu'on
+    // vient d'ajouter — ce qui évitait l'avertissement "créneau déjà pris" qui s'affichait à tort
+    // juste après un premier ajout.
+    setCoursDraft(d => ({ ...d, heureDebut: '', heureFin: '' }));
   };
   const removeCours = (uid) => setCoursList(list => list.filter(c => c.uid !== uid));
 
@@ -425,7 +440,7 @@ export default function BookingPage({ slug }) {
     }
   };
 
-  const inputStyle = { border: `1px solid ${COLORS.iceLine}`, borderRadius: 9, padding: '10px 12px', fontSize: 14.5, fontFamily: 'Inter, sans-serif', color: COLORS.ink, background: '#fff', width: '100%' };
+  const inputStyle = { border: `1px solid ${COLORS.iceLine}`, borderRadius: 9, padding: '10px 12px', fontSize: 14.5, fontFamily: 'Inter, sans-serif', color: COLORS.ink, background: '#fff', width: '100%', boxSizing: 'border-box' };
   const field = (label, input) => <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}><label style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.inkSoft }}>{label}</label>{input}</div>;
 
   const LangSwitcher = (
@@ -494,7 +509,7 @@ export default function BookingPage({ slug }) {
         <div style={{ background: '#fff', border: `1px solid ${COLORS.iceLine}`, borderRadius: 16, padding: 24, display: 'flex', flexDirection: 'column', gap: 22 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700, color: COLORS.navy, marginBottom: 14 }}><User size={15} /> {t.sectionInfo}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12 }}>
               {field(t.prenom, <input style={inputStyle} value={form.prenom} onChange={set('prenom')} />)}
               {field(t.nom, <input style={inputStyle} value={form.nom} onChange={set('nom')} />)}
               {field(t.telephone, <input style={inputStyle} value={form.telephone} onChange={set('telephone')} />)}
@@ -524,7 +539,7 @@ export default function BookingPage({ slug }) {
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12, marginBottom: 14 }}>
               {field(t.discipline, <select style={inputStyle} value={coursDraft.discipline} onChange={setDraft('discipline')}>{DISCIPLINES.map(d => <option key={d} value={d}>{t.disciplines[d]}</option>)}</select>)}
               {field(t.niveau, <select style={inputStyle} value={coursDraft.niveau} onChange={setDraft('niveau')}>{NIVEAUX.map(n => <option key={n} value={n}>{t.niveaux[n]}</option>)}</select>)}
               {field(t.date, <input type="date" style={inputStyle} value={coursDraft.date} onChange={setDraft('date')} />)}
@@ -548,10 +563,17 @@ export default function BookingPage({ slug }) {
               </div>
             )}
             {coursDraft.type === 'Heure' && (
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                {DUREE_OPTIONS.map(mins => (
+                  <button key={mins} type="button" onClick={() => setDuree(mins)} style={{ flex: 1, padding: '8px', borderRadius: 8, cursor: 'pointer', fontSize: 12.5, fontWeight: 600, border: `1px solid ${coursDraft.duree === mins ? COLORS.glacier : COLORS.iceLine}`, background: coursDraft.duree === mins ? COLORS.glacier + '18' : '#fff', color: coursDraft.duree === mins ? COLORS.glacierDeep : COLORS.ink }}>{DUREE_LABELS[mins]}</button>
+                ))}
+              </div>
+            )}
+            {coursDraft.type === 'Heure' && (
               hourOptions.length > 0 ? (
                 <div style={{ marginBottom: 10 }}>
                   {field(t.heureLabel, <select style={inputStyle} value={timeToMinutes(coursDraft.heureDebut || minutesToTime(hourOptions[0]))} onChange={setHeureDebut}>
-                    {hourOptions.map(m => <option key={m} value={m}>{minutesToTime(m)} – {minutesToTime(m + HEURE_DURATION)}</option>)}
+                    {hourOptions.map(m => <option key={m} value={m}>{minutesToTime(m)} – {minutesToTime(m + coursDraft.duree)}</option>)}
                   </select>)}
                 </div>
               ) : (
