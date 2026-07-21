@@ -418,10 +418,19 @@ export default function BookingPage({ slug }) {
 
   const handleSubmit = async () => {
     if (!form.prenom || !form.nom || !form.telephone) { setError(t.errorRequired); return; }
-    if (coursList.length === 0) { setError(t.noCoursYet); return; }
+    // Si le client n'a ajouté aucun cours à la liste (cas le plus fréquent : un seul cours),
+    // on envoie directement le cours en cours de configuration — pas besoin de cliquer
+    // "Ajouter ce cours" avant "Envoyer ma demande" quand il n'y en a qu'un seul.
+    const finalCoursList = coursList.length > 0 ? coursList : (noAvailabilityAtAll ? [] : [{
+      ...coursDraft,
+      heureDebut: coursDraft.heureDebut || creneaux['Matin'][0],
+      heureFin: coursDraft.heureFin || creneaux['Matin'][1],
+      prix: draftEstimate
+    }]);
+    if (finalCoursList.length === 0) { setError(t.noCoursYet); return; }
     setError(''); setLoading(true);
     const notes = form.message ? `Demande en ligne (${uiLang.toUpperCase()}) : ${form.message}` : `Demande envoyée via le formulaire en ligne (langue : ${uiLang.toUpperCase()}).`;
-    const coursPayload = coursList.map(c => ({
+    const coursPayload = finalCoursList.map(c => ({
       nom: form.nom, prenom: form.prenom, telephone: form.telephone, email: form.email,
       nationalite: form.nationalite, langue: form.langue, age: Number(form.age) || '',
       niveau: c.niveau, discipline: c.discipline, nbPersonnes: Number(form.nbPersonnes) || 1, station: form.station,
@@ -605,7 +614,7 @@ export default function BookingPage({ slug }) {
 
           {error && <div style={{ fontSize: 13, color: COLORS.amber, background: COLORS.amber + '15', borderRadius: 8, padding: '10px 12px' }}>{error}</div>}
 
-          <button onClick={handleSubmit} disabled={loading || coursList.length === 0} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '13px', fontSize: 14.5, fontWeight: 600, cursor: (loading || coursList.length === 0) ? 'default' : 'pointer', opacity: (loading || coursList.length === 0) ? 0.6 : 1 }}>
+          <button onClick={handleSubmit} disabled={loading || (coursList.length === 0 && noAvailabilityAtAll)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '13px', fontSize: 14.5, fontWeight: 600, cursor: (loading || (coursList.length === 0 && noAvailabilityAtAll)) ? 'default' : 'pointer', opacity: (loading || (coursList.length === 0 && noAvailabilityAtAll)) ? 0.6 : 1 }}>
             <Send size={16} /> {loading ? t.submitting : t.submit}
           </button>
           <p style={{ fontSize: 11.5, color: COLORS.inkSoft, textAlign: 'center' }}>{t.paymentNote(settings.nom)}</p>
