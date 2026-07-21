@@ -68,7 +68,7 @@ export default async function handler(req, res) {
         apresMidiDebut: settings.apresMidiDebut,
         apresMidiFin: settings.apresMidiFin,
         tarifSkiHaute: settings.tarifSkiHaute,
-tarifSkiBasse: settings.tarifSkiBasse,
+        tarifSkiBasse: settings.tarifSkiBasse,
         tarifSnowboardHaute: settings.tarifSnowboardHaute,
         tarifSnowboardBasse: settings.tarifSnowboardBasse,
         tarifDemiJourneeHaute: settings.tarifDemiJourneeHaute,
@@ -77,10 +77,6 @@ tarifSkiBasse: settings.tarifSkiBasse,
         tarifJourneeBasse: settings.tarifJourneeBasse,
         hauteSaisonDebut: settings.hauteSaisonDebut,
         hauteSaisonFin: settings.hauteSaisonFin,
-        hauteSaisonDebut2: settings.hauteSaisonDebut2,
-        hauteSaisonFin2: settings.hauteSaisonFin2,
-        hauteSaisonDebut3: settings.hauteSaisonDebut3,
-        hauteSaisonFin3: settings.hauteSaisonFin3,
         seasonMode: settings.seasonMode,
         zoneVacances: settings.zoneVacances,
         joursRepos: settings.joursRepos,
@@ -91,10 +87,14 @@ tarifSkiBasse: settings.tarifSkiBasse,
     }
 
     if (req.method === 'POST') {
-      const { slug, reservation } = req.body;
-      if (!slug || !reservation) return res.status(400).json({ error: 'slug et reservation requis' });
-      if (!reservation.date || !reservation.heureDebut || !reservation.heureFin) {
-        return res.status(400).json({ error: 'date, heureDebut et heureFin requis' });
+      const { slug, cours } = req.body;
+      if (!slug || !Array.isArray(cours) || cours.length === 0) {
+        return res.status(400).json({ error: 'slug et cours (tableau) requis' });
+      }
+      for (const c of cours) {
+        if (!c.date || !c.heureDebut || !c.heureFin) {
+          return res.status(400).json({ error: 'date, heureDebut et heureFin requis pour chaque cours' });
+        }
       }
 
       const userId = await getUserIdForSlug(slug);
@@ -103,28 +103,36 @@ tarifSkiBasse: settings.tarifSkiBasse,
       const reservationsRaw = await getRow(userId, RES_KEY);
       const reservations = reservationsRaw ? JSON.parse(reservationsRaw) : [];
 
-      // Vérification anti-conflit côté serveur : on refuse si le créneau demandé chevauche
-      // une réservation déjà enregistrée (non annulée) pour cette date, quel que soit ce que
-      // le client a pu voir avant d'envoyer sa demande.
-      const newStart = timeToMinutes(reservation.heureDebut);
-      const newEnd = timeToMinutes(reservation.heureFin);
-      const conflict = reservations.some(r =>
-        r.date === reservation.date &&
-        r.statut !== 'Annulée' &&
-        overlaps(newStart, newEnd, timeToMinutes(r.heureDebut), timeToMinutes(r.heureFin))
-      );
-      if (conflict) {
-        return res.status(409).json({ error: "Ce créneau vient d'être réservé par quelqu'un d'autre. Merci d'en choisir un autre." });
+      // Vérification anti-conflit côté serveur : on refuse si un cours du lot chevauche
+      // une réservation déjà enregistrée, OU un autre cours du même lot.
+      for (let i = 0; i < cours.length; i++) {
+        const c = cours[i];
+        const newStart = timeToMinutes(c.heureDebut);
+        const newEnd = timeToMinutes(c.heureFin);
+        const conflictExisting = reservations.some(r =>
+          r.date === c.date &&
+          r.statut !== 'Annulée' &&
+          overlaps(newStart, newEnd, timeToMinutes(r.heureDebut), timeToMinutes(r.heureFin))
+        );
+        const conflictSelf = cours.some((c2, j) =>
+          j !== i && c2.date === c.date && overlaps(newStart, newEnd, timeToMinutes(c2.heureDebut), timeToMinutes(c2.heureFin))
+        );
+        if (conflictExisting || conflictSelf) {
+          return res.status(409).json({ error: `Un des créneaux demandés (${c.date} ${c.heureDebut}-${c.heureFin}) vient d'être pris ou chevauche un autre cours de la même réservation. Merci de vérifier tes horaires.` });
+        }
       }
 
-      const newReservation = {
-        ...reservation,
-        id: Date.now(),
+      const groupId = Date.now();
+      const newReservations = cours.map((c, idx) => ({
+        ...c,
+        id: groupId + idx,
+        groupId,
         statut: 'En attente',
-        paiement: 'Non payé'
-      };
+        paiement: 'Non payé',
+        modePaiement: 'Non renseigné'
+      }));
 
-      reservations.push(newReservation);
+      reservations.push(...newReservations);
 
       await supabaseAdmin.from('kv_store').upsert({
         user_id: userId,
@@ -134,7 +142,7 @@ tarifSkiBasse: settings.tarifSkiBasse,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id,key,shared' });
 
-      return res.status(200).json({ ok: true, id: newReservation.id });
+      return res.status(200).json({ ok: true, groupId, ids: newReservations.map(r => r.id) });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
