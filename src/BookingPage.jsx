@@ -150,7 +150,11 @@ const T = {
     creneaux: { 'Matin': 'Matin', 'Après-midi': 'Après-midi' },
     langues: { Français: 'Français', Anglais: 'Anglais', Allemand: 'Allemand', Espagnol: 'Espagnol', Italien: 'Italien', Portugais: 'Portugais', Russe: 'Russe' },
     addCours: 'Ajouter ce cours', coursListTitle: 'Tes cours', removeCours: 'Retirer', totalLabel: 'Total',
-    noCoursYet: 'Ajoute au moins un cours pour continuer.'
+    noCoursYet: 'Ajoute au moins un cours pour continuer.',
+    heureDebutLabel: 'Heure de début', heureFinLabel: 'Heure de fin',
+    heureRangeInvalidMsg: "L'heure de fin doit être après l'heure de début.",
+    heureConflictMsg: 'Ce créneau chevauche une réservation déjà existante — merci de choisir un autre horaire.',
+    heureOutsideHoursMsg: (start, end) => `En dehors des horaires habituels (${start}–${end}) — ta demande sera quand même envoyée, à valider par le moniteur.`
   },
   en: {
     title: 'Book a lesson', subtitle: (nom) => `Fill in this form and ${nom} will confirm your booking shortly.`,
@@ -173,7 +177,11 @@ const T = {
     creneaux: { 'Matin': 'Morning', 'Après-midi': 'Afternoon' },
     langues: { Français: 'French', Anglais: 'English', Allemand: 'German', Espagnol: 'Spanish', Italien: 'Italian', Portugais: 'Portuguese', Russe: 'Russian' },
     addCours: 'Add this lesson', coursListTitle: 'Your lessons', removeCours: 'Remove', totalLabel: 'Total',
-    noCoursYet: 'Add at least one lesson to continue.'
+    noCoursYet: 'Add at least one lesson to continue.',
+    heureDebutLabel: 'Start time', heureFinLabel: 'End time',
+    heureRangeInvalidMsg: 'The end time must be after the start time.',
+    heureConflictMsg: 'This time slot overlaps an existing booking — please choose another time.',
+    heureOutsideHoursMsg: (start, end) => `Outside usual hours (${start}–${end}) — your request will still be sent for the instructor to approve.`
   },
   es: {
     title: 'Reservar una clase', subtitle: (nom) => `Rellena este formulario y ${nom} confirmará tu reserva enseguida.`,
@@ -196,7 +204,11 @@ const T = {
     creneaux: { 'Matin': 'Mañana', 'Après-midi': 'Tarde' },
     langues: { Français: 'Francés', Anglais: 'Inglés', Allemand: 'Alemán', Espagnol: 'Español', Italien: 'Italiano', Portugais: 'Portugués', Russe: 'Ruso' },
     addCours: 'Añadir esta clase', coursListTitle: 'Tus clases', removeCours: 'Quitar', totalLabel: 'Total',
-    noCoursYet: 'Añade al menos una clase para continuar.'
+    noCoursYet: 'Añade al menos una clase para continuar.',
+    heureDebutLabel: 'Hora de inicio', heureFinLabel: 'Hora de fin',
+    heureRangeInvalidMsg: 'La hora de fin debe ser posterior a la hora de inicio.',
+    heureConflictMsg: 'Este horario se solapa con una reserva existente — elige otro horario.',
+    heureOutsideHoursMsg: (start, end) => `Fuera del horario habitual (${start}–${end}) — tu solicitud se enviará igualmente para que el monitor la valide.`
   },
   de: {
     title: 'Skikurs buchen', subtitle: (nom) => `Fülle dieses Formular aus, ${nom} bestätigt deine Buchung in Kürze.`,
@@ -219,7 +231,11 @@ const T = {
     creneaux: { 'Matin': 'Vormittag', 'Après-midi': 'Nachmittag' },
     langues: { Français: 'Französisch', Anglais: 'Englisch', Allemand: 'Deutsch', Espagnol: 'Spanisch', Italien: 'Italienisch', Portugais: 'Portugiesisch', Russe: 'Russisch' },
     addCours: 'Diesen Kurs hinzufügen', coursListTitle: 'Deine Kurse', removeCours: 'Entfernen', totalLabel: 'Gesamt',
-    noCoursYet: 'Füge mindestens einen Kurs hinzu, um fortzufahren.'
+    noCoursYet: 'Füge mindestens einen Kurs hinzu, um fortzufahren.',
+    heureDebutLabel: 'Startzeit', heureFinLabel: 'Endzeit',
+    heureRangeInvalidMsg: 'Die Endzeit muss nach der Startzeit liegen.',
+    heureConflictMsg: 'Diese Zeit überschneidet sich mit einer bestehenden Buchung — bitte wähle eine andere Zeit.',
+    heureOutsideHoursMsg: (start, end) => `Außerhalb der üblichen Zeiten (${start}–${end}) — deine Anfrage wird trotzdem zur Bestätigung gesendet.`
   },
   it: {
     title: 'Prenota una lezione', subtitle: (nom) => `Compila questo modulo, ${nom} confermerà la tua prenotazione a breve.`,
@@ -242,7 +258,11 @@ const T = {
     creneaux: { 'Matin': 'Mattina', 'Après-midi': 'Pomeriggio' },
     langues: { Français: 'Francese', Anglais: 'Inglese', Allemand: 'Tedesco', Espagnol: 'Spagnolo', Italien: 'Italiano', Portugais: 'Portoghese', Russe: 'Russo' },
     addCours: 'Aggiungi questa lezione', coursListTitle: 'Le tue lezioni', removeCours: 'Rimuovi', totalLabel: 'Totale',
-    noCoursYet: 'Aggiungi almeno una lezione per continuare.'
+    noCoursYet: 'Aggiungi almeno una lezione per continuare.',
+    heureDebutLabel: 'Ora di inizio', heureFinLabel: 'Ora di fine',
+    heureRangeInvalidMsg: "L'orario di fine deve essere successivo all'orario di inizio.",
+    heureConflictMsg: 'Questo orario si sovrappone a una prenotazione esistente — scegli un altro orario.',
+    heureOutsideHoursMsg: (start, end) => `Fuori dagli orari abituali (${start}–${end}) — la tua richiesta verrà comunque inviata per l'approvazione del maestro.`
   },
   pt: {
     title: 'Reservar uma aula', subtitle: (nom) => `Preenche este formulário e ${nom} confirmará a tua reserva em breve.`,
@@ -265,7 +285,11 @@ const T = {
     creneaux: { 'Matin': 'Manhã', 'Après-midi': 'Tarde' },
     langues: { Français: 'Francês', Anglais: 'Inglês', Allemand: 'Alemão', Espagnol: 'Espanhol', Italien: 'Italiano', Portugais: 'Português', Russe: 'Russo' },
     addCours: 'Adicionar esta aula', coursListTitle: 'As tuas aulas', removeCours: 'Remover', totalLabel: 'Total',
-    noCoursYet: 'Adiciona pelo menos uma aula para continuar.'
+    noCoursYet: 'Adiciona pelo menos uma aula para continuar.',
+    heureDebutLabel: 'Hora de início', heureFinLabel: 'Hora de fim',
+    heureRangeInvalidMsg: 'A hora de fim deve ser depois da hora de início.',
+    heureConflictMsg: 'Este horário sobrepõe-se a uma reserva já existente — escolhe outro horário.',
+    heureOutsideHoursMsg: (start, end) => `Fora do horário habitual (${start}–${end}) — o teu pedido será enviado na mesma, para o monitor validar.`
   }
 };
 
@@ -349,36 +373,61 @@ export default function BookingPage({ slug }) {
   const high = isHighSeason(coursDraft.date, settings);
   const seasonLabel = high ? t.high : t.low;
 
+  // Pré-remplit un horaire par défaut (raisonnable) dès que les horaires du moniteur sont chargés,
+  // pour que les champs "Heure de début/fin" ne s'affichent pas vides au premier chargement —
+  // le client reste ensuite entièrement libre de les modifier.
+  useEffect(() => {
+    if (!ready) return;
+    setCoursDraft(d => (d.type === 'Heure' && !d.heureDebut && !d.heureFin)
+      ? { ...d, heureDebut: settings.matinDebut || '09:00', heureFin: minutesToTime(timeToMinutes(settings.matinDebut || '09:00') + (d.duree || HEURE_DURATION)) }
+      : d);
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const creneaux = useMemo(() => getCreneaux(settings), [settings]);
   const workStart = useMemo(() => timeToMinutes(settings.matinDebut || '09:00'), [settings]);
   const workEnd = useMemo(() => timeToMinutes(settings.apresMidiFin || '17:00'), [settings]);
 
-  const hourOptions = useMemo(() => availableHourStarts(coursDraft.date, combinedBusy, workStart, workEnd, coursDraft.duree), [coursDraft.date, combinedBusy, workStart, workEnd, coursDraft.duree]);
   const matinFree = useMemo(() => isCreneauFree(coursDraft.date, 'Matin', combinedBusy, creneaux), [coursDraft.date, combinedBusy, creneaux]);
   const apremFree = useMemo(() => isCreneauFree(coursDraft.date, 'Après-midi', combinedBusy, creneaux), [coursDraft.date, combinedBusy, creneaux]);
   const journeeFree = useMemo(() => isJourneeFree(coursDraft.date, combinedBusy, workStart, workEnd), [coursDraft.date, combinedBusy, workStart, workEnd]);
-  const noAvailabilityAtAll = hourOptions.length === 0 && !matinFree && !apremFree && !journeeFree;
+  // Le type "Heure" n'est plus contraint à une liste de créneaux prédéfinis : le client choisit
+  // librement son heure de début et de fin (voir heureConflict/heureRangeInvalid ci-dessous pour
+  // la seule validation qui reste : la cohérence des heures et l'absence de chevauchement).
+  const noAvailabilityAtAll = coursDraft.type !== 'Heure' && !matinFree && !apremFree && !journeeFree;
+
+  const heureRangeInvalid = coursDraft.type === 'Heure' && !!coursDraft.heureDebut && !!coursDraft.heureFin && timeToMinutes(coursDraft.heureFin) <= timeToMinutes(coursDraft.heureDebut);
+  const heureConflict = useMemo(() => {
+    if (coursDraft.type !== 'Heure' || !coursDraft.heureDebut || !coursDraft.heureFin) return false;
+    const s = timeToMinutes(coursDraft.heureDebut), e = timeToMinutes(coursDraft.heureFin);
+    if (e <= s) return false;
+    return overlaps(s, e, busyIntervals(coursDraft.date, combinedBusy));
+  }, [coursDraft.type, coursDraft.date, coursDraft.heureDebut, coursDraft.heureFin, combinedBusy]);
+  // Un cours "Heure" en dehors des horaires habituels du moniteur reste accepté : on informe
+  // juste le client, la demande part quand même en "En attente" pour que le moniteur décide.
+  const heureOutsideHours = coursDraft.type === 'Heure' && !!coursDraft.heureDebut && !!coursDraft.heureFin && !heureRangeInvalid &&
+    (timeToMinutes(coursDraft.heureDebut) < workStart || timeToMinutes(coursDraft.heureFin) > workEnd);
+  const derivedHeureDuree = useMemo(() => {
+    if (coursDraft.type !== 'Heure' || !coursDraft.heureDebut || !coursDraft.heureFin) return coursDraft.duree || HEURE_DURATION;
+    const d = timeToMinutes(coursDraft.heureFin) - timeToMinutes(coursDraft.heureDebut);
+    return d > 0 ? d : (coursDraft.duree || HEURE_DURATION);
+  }, [coursDraft.type, coursDraft.heureDebut, coursDraft.heureFin, coursDraft.duree]);
+  const heureDraftInvalid = coursDraft.type === 'Heure' && (!coursDraft.heureDebut || !coursDraft.heureFin || heureRangeInvalid || heureConflict);
 
   // Corrige automatiquement la sélection si elle devient indisponible (changement de date, ajout d'un cours, etc.)
+  // — ne s'applique plus au type "Heure", devenu totalement libre.
   useEffect(() => {
     setCoursDraft(d => {
-      if (d.type === 'Heure') {
-        if (hourOptions.length > 0 && !hourOptions.includes(timeToMinutes(d.heureDebut || '09:00'))) {
-          const start = hourOptions[0];
-          return { ...d, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + d.duree) };
-        }
-      } else if (d.type === 'Demi-journée') {
+      if (d.type === 'Demi-journée') {
         if (d.creneau === 'Matin' && !matinFree && apremFree) return { ...d, creneau: 'Après-midi', heureDebut: creneaux['Après-midi'][0], heureFin: creneaux['Après-midi'][1] };
         if (d.creneau === 'Après-midi' && !apremFree && matinFree) return { ...d, creneau: 'Matin', heureDebut: creneaux['Matin'][0], heureFin: creneaux['Matin'][1] };
-      } else if (d.type === 'Journée' && !journeeFree && hourOptions.length > 0) {
-        const start = hourOptions[0];
-        return { ...d, type: 'Heure', heureDebut: minutesToTime(start), heureFin: minutesToTime(start + (d.duree || HEURE_DURATION)) };
+      } else if (d.type === 'Journée' && !journeeFree) {
+        return { ...d, type: 'Heure', heureDebut: d.heureDebut || minutesToTime(workStart), heureFin: d.heureFin || minutesToTime(workStart + (d.duree || HEURE_DURATION)) };
       }
       return d;
     });
   }, [coursDraft.date, combinedBusy]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const draftEstimate = computePrix(coursDraft, settings);
+  const draftEstimate = computePrix({ ...coursDraft, duree: derivedHeureDuree }, settings);
 
   const setType = (type) => {
     if (type === 'Journée' && !journeeFree) return;
@@ -388,29 +437,40 @@ export default function BookingPage({ slug }) {
         const cren = matinFree ? 'Matin' : (apremFree ? 'Après-midi' : (d.creneau || 'Matin'));
         return { ...d, type, creneau: cren, heureDebut: creneaux[cren][0], heureFin: creneaux[cren][1] };
       }
-      const start = hourOptions[0];
-      return start !== undefined ? { ...d, type, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + d.duree) } : { ...d, type };
+      const heureDebut = d.heureDebut || minutesToTime(workStart);
+      const heureFin = (d.heureFin && timeToMinutes(d.heureFin) > timeToMinutes(heureDebut)) ? d.heureFin : minutesToTime(timeToMinutes(heureDebut) + (d.duree || HEURE_DURATION));
+      return { ...d, type, heureDebut, heureFin };
     });
   };
   const setCreneau = (cren) => { if ((cren === 'Matin' && !matinFree) || (cren === 'Après-midi' && !apremFree)) return; setCoursDraft(d => ({ ...d, creneau: cren, heureDebut: creneaux[cren][0], heureFin: creneaux[cren][1] })); };
-  const setHeureDebut = (e) => { const start = Number(e.target.value); setCoursDraft(d => ({ ...d, heureDebut: minutesToTime(start), heureFin: minutesToTime(start + d.duree) })); };
+  // Heure de début/fin totalement libres (ex : 08:30→10:15) : le client tape directement l'horaire voulu.
+  const setHeureDebutFree = (e) => {
+    const heureDebut = e.target.value;
+    setCoursDraft(d => {
+      const keepFin = d.heureFin && timeToMinutes(d.heureFin) > timeToMinutes(heureDebut);
+      return { ...d, heureDebut, heureFin: keepFin ? d.heureFin : minutesToTime(timeToMinutes(heureDebut) + (d.duree || HEURE_DURATION)) };
+    });
+  };
+  const setHeureFinFree = (e) => setCoursDraft(d => ({ ...d, heureFin: e.target.value }));
   const setDuree = (mins) => {
     setCoursDraft(d => {
       const start = timeToMinutes(d.heureDebut || minutesToTime(workStart));
-      return { ...d, duree: mins, heureFin: minutesToTime(start + mins) };
+      return { ...d, duree: mins, heureDebut: d.heureDebut || minutesToTime(workStart), heureFin: minutesToTime(start + mins) };
     });
   };
 
   const addCours = () => {
+    if (heureDraftInvalid) return;
     const heureDebut = coursDraft.heureDebut || creneaux['Matin'][0];
     const heureFin = coursDraft.heureFin || creneaux['Matin'][1];
-    const prix = computePrix(coursDraft, settings);
-    setCoursList(list => [...list, { ...coursDraft, heureDebut, heureFin, prix, uid: `${Date.now()}-${Math.random()}` }]);
-    // On efface juste l'heure choisie (on garde la date/discipline/type) : le useEffect au-dessus
-    // recalcule alors le prochain créneau réellement libre, au lieu de re-proposer celui qu'on
-    // vient d'ajouter — ce qui évitait l'avertissement "créneau déjà pris" qui s'affichait à tort
-    // juste après un premier ajout.
-    setCoursDraft(d => ({ ...d, heureDebut: '', heureFin: '' }));
+    const prix = computePrix({ ...coursDraft, duree: derivedHeureDuree }, settings);
+    setCoursList(list => [...list, { ...coursDraft, heureDebut, heureFin, duree: derivedHeureDuree, prix, uid: `${Date.now()}-${Math.random()}` }]);
+    // Pour le type "Heure" (horaires libres), on enchaîne le prochain cours juste après celui
+    // qu'on vient d'ajouter (même durée), plutôt que de vider les champs — ça évite au client
+    // de devoir retaper un horaire à chaque cours supplémentaire lors d'une réservation multi-cours.
+    if (coursDraft.type === 'Heure') {
+      setCoursDraft(d => ({ ...d, heureDebut: heureFin, heureFin: minutesToTime(timeToMinutes(heureFin) + (derivedHeureDuree || HEURE_DURATION)) }));
+    }
   };
   const removeCours = (uid) => setCoursList(list => list.filter(c => c.uid !== uid));
 
@@ -421,12 +481,14 @@ export default function BookingPage({ slug }) {
     // Si le client n'a ajouté aucun cours à la liste (cas le plus fréquent : un seul cours),
     // on envoie directement le cours en cours de configuration — pas besoin de cliquer
     // "Ajouter ce cours" avant "Envoyer ma demande" quand il n'y en a qu'un seul.
-    const finalCoursList = coursList.length > 0 ? coursList : (noAvailabilityAtAll ? [] : [{
+    const draftUsable = coursDraft.type === 'Heure' ? !heureDraftInvalid : !noAvailabilityAtAll;
+    const finalCoursList = coursList.length > 0 ? coursList : (draftUsable ? [{
       ...coursDraft,
       heureDebut: coursDraft.heureDebut || creneaux['Matin'][0],
       heureFin: coursDraft.heureFin || creneaux['Matin'][1],
+      duree: derivedHeureDuree,
       prix: draftEstimate
-    }]);
+    }] : []);
     if (finalCoursList.length === 0) { setError(t.noCoursYet); return; }
     setError(''); setLoading(true);
     const notes = form.message ? `Demande en ligne (${uiLang.toUpperCase()}) : ${form.message}` : `Demande envoyée via le formulaire en ligne (langue : ${uiLang.toUpperCase()}).`;
@@ -579,17 +641,21 @@ export default function BookingPage({ slug }) {
               </div>
             )}
             {coursDraft.type === 'Heure' && (
-              hourOptions.length > 0 ? (
-                <div style={{ marginBottom: 10 }}>
-                  {field(t.heureLabel, <select style={inputStyle} value={timeToMinutes(coursDraft.heureDebut || minutesToTime(hourOptions[0]))} onChange={setHeureDebut}>
-                    {hourOptions.map(m => <option key={m} value={m}>{minutesToTime(m)} – {minutesToTime(m + coursDraft.duree)}</option>)}
-                  </select>)}
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12, marginBottom: 10 }}>
+                  {field(t.heureDebutLabel, <input type="time" style={inputStyle} value={coursDraft.heureDebut || ''} onChange={setHeureDebutFree} />)}
+                  {field(t.heureFinLabel, <input type="time" style={inputStyle} value={coursDraft.heureFin || ''} onChange={setHeureFinFree} />)}
                 </div>
-              ) : (
-                <div style={{ fontSize: 12.5, color: COLORS.amber, background: COLORS.amber + '15', borderRadius: 8, padding: '9px 11px', marginBottom: 10 }}>
-                  Aucun horaire disponible à cette date — merci de choisir un autre jour.
-                </div>
-              )
+                {heureRangeInvalid && (
+                  <div style={{ fontSize: 12.5, color: COLORS.amber, background: COLORS.amber + '15', borderRadius: 8, padding: '9px 11px', marginBottom: 10 }}>{t.heureRangeInvalidMsg}</div>
+                )}
+                {!heureRangeInvalid && heureConflict && (
+                  <div style={{ fontSize: 12.5, color: COLORS.amber, background: COLORS.amber + '15', borderRadius: 8, padding: '9px 11px', marginBottom: 10 }}>{t.heureConflictMsg}</div>
+                )}
+                {!heureRangeInvalid && !heureConflict && heureOutsideHours && (
+                  <div style={{ fontSize: 12.5, color: COLORS.glacierDeep, background: COLORS.glacier + '15', borderRadius: 8, padding: '9px 11px', marginBottom: 10 }}>{t.heureOutsideHoursMsg(settings.matinDebut || '09:00', settings.apresMidiFin || '17:00')}</div>
+                )}
+              </>
             )}
             {noAvailabilityAtAll && (
               <div style={{ fontSize: 12.5, color: COLORS.amber, background: COLORS.amber + '15', borderRadius: 8, padding: '9px 11px', marginBottom: 10 }}>
@@ -600,7 +666,7 @@ export default function BookingPage({ slug }) {
               <span style={{ fontSize: 12.5, color: COLORS.inkSoft }}>{t.priceLabel(seasonLabel)}{coursDraft.type === 'Heure' ? t.perHour : ''}</span>
               <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 16, color: COLORS.navy }}>{fmtEUR(draftEstimate, settings.devise)}</span>
             </div>
-            <button type="button" onClick={addCours} disabled={noAvailabilityAtAll} style={{ width: '100%', padding: '10px', borderRadius: 9, border: `1px dashed ${COLORS.glacier}`, background: '#fff', color: COLORS.glacierDeep, fontSize: 13, fontWeight: 600, cursor: noAvailabilityAtAll ? 'not-allowed' : 'pointer', opacity: noAvailabilityAtAll ? 0.6 : 1 }}>+ {t.addCours}</button>
+            <button type="button" onClick={addCours} disabled={coursDraft.type === 'Heure' ? heureDraftInvalid : noAvailabilityAtAll} style={{ width: '100%', padding: '10px', borderRadius: 9, border: `1px dashed ${COLORS.glacier}`, background: '#fff', color: COLORS.glacierDeep, fontSize: 13, fontWeight: 600, cursor: (coursDraft.type === 'Heure' ? heureDraftInvalid : noAvailabilityAtAll) ? 'not-allowed' : 'pointer', opacity: (coursDraft.type === 'Heure' ? heureDraftInvalid : noAvailabilityAtAll) ? 0.6 : 1 }}>+ {t.addCours}</button>
 
             {coursList.length > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 14, borderTop: `1px solid ${COLORS.iceLine}` }}>
@@ -614,7 +680,7 @@ export default function BookingPage({ slug }) {
 
           {error && <div style={{ fontSize: 13, color: COLORS.amber, background: COLORS.amber + '15', borderRadius: 8, padding: '10px 12px' }}>{error}</div>}
 
-          <button onClick={handleSubmit} disabled={loading || (coursList.length === 0 && noAvailabilityAtAll)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '13px', fontSize: 14.5, fontWeight: 600, cursor: (loading || (coursList.length === 0 && noAvailabilityAtAll)) ? 'default' : 'pointer', opacity: (loading || (coursList.length === 0 && noAvailabilityAtAll)) ? 0.6 : 1 }}>
+          <button onClick={handleSubmit} disabled={loading || (coursList.length === 0 && (coursDraft.type === 'Heure' ? heureDraftInvalid : noAvailabilityAtAll))} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: COLORS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '13px', fontSize: 14.5, fontWeight: 600, cursor: (loading || (coursList.length === 0 && (coursDraft.type === 'Heure' ? heureDraftInvalid : noAvailabilityAtAll))) ? 'default' : 'pointer', opacity: (loading || (coursList.length === 0 && (coursDraft.type === 'Heure' ? heureDraftInvalid : noAvailabilityAtAll))) ? 0.6 : 1 }}>
             <Send size={16} /> {loading ? t.submitting : t.submit}
           </button>
           <p style={{ fontSize: 11.5, color: COLORS.inkSoft, textAlign: 'center' }}>{t.paymentNote(settings.nom)}</p>
