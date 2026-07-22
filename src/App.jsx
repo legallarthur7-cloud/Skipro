@@ -3,7 +3,7 @@ import { supabase } from './lib/storage-shim.js';
 import {
   LayoutDashboard, Calendar as CalendarIcon, Users, User, Settings as SettingsIcon, Plus, X,
   ChevronLeft, ChevronRight, Clock, Euro, TrendingUp, TrendingDown, Trash2, Pencil,
-  Search, FileText, Printer, Download, Repeat, MapPin, Globe2, BarChart3, Sun, Moon, LogOut, Lock, Mail, Menu
+  Search, FileText, Printer, Download, Repeat, MapPin, Globe2, BarChart3, Sun, Moon, LogOut, Lock, Mail, Menu, Link2
 } from 'lucide-react';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Cell
@@ -1063,7 +1063,10 @@ function Dashboard({ reservations, onNewReservation, C, devise, subscribed, lang
 /* ==================================================================================
    CALENDAR
    ================================================================================== */
-const DAY_START = 8, DAY_END = 19, ROW_HEIGHT = 52;
+// Élargi (6h-22h au lieu de 8h-19h) pour que les réservations hors créneaux standards
+// acceptées par le moniteur (cours très tôt le matin ou tard le soir) s'affichent
+// correctement dans le calendrier au lieu d'être coupées en haut/bas de la grille.
+const DAY_START = 6, DAY_END = 22, ROW_HEIGHT = 52;
 
 function MonthGrid({ anchor, reservations, onDayClick, C, langue }) {
   const days_short = DAYS_SHORT_MAP[langue] || DAYS_SHORT_MAP['Français'];
@@ -1097,6 +1100,10 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const hours = Array.from({ length: DAY_END - DAY_START }, (_, i) => DAY_START + i);
   const byDate = useCallback((key) => reservations.filter(r => r.date === key && r.statut !== 'Annulée'), [reservations]);
+  // Une réservation multi-cours (voir public-booking.js) partage un même groupId entre tous
+  // ses cours : on s'en sert uniquement pour afficher un repère visuel dans le calendrier,
+  // sans changer la logique de stockage (chaque cours reste un événement indépendant).
+  const groupSiblingCount = useCallback((groupId) => groupId ? reservations.filter(r => r.groupId === groupId && r.statut !== 'Annulée').length : 0, [reservations]);
   const [drag, setDrag] = useState(null);
   const didDragRef = useRef(false);
   const [pendingConfirm, setPendingConfirm] = useState(null);
@@ -1169,14 +1176,16 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
           else if (isDragging && drag.mode === 'resize-bottom') { endM = Math.max(startM + 30, endM + dMin); }
           else if (isDragging && drag.mode === 'resize-top') { startM = Math.min(endM - 30, startM + dMin); }
           const top = (startM / 60) * ROW_HEIGHT, height = Math.max(((endM - startM) / 60) * ROW_HEIGHT, 24);
+          const siblingCount = !ev.absence ? groupSiblingCount(ev.groupId) : 0;
           return (
             <div key={ev.id}
               onMouseDown={ev.absence ? startDrag(ev, 'move') : undefined}
               onTouchStart={ev.absence ? startDrag(ev, 'move') : undefined}
               onClick={(e) => { e.stopPropagation(); if (didDragRef.current) { didDragRef.current = false; return; } onEventClick(ev); }}
+              title={siblingCount > 1 ? `Fait partie d'une réservation groupée (${siblingCount} cours)` : undefined}
               style={{ position: 'absolute', top, height, left: 4, right: 4, background: ev.absence ? C.snowDim : C.card, borderLeft: `3px solid ${ev.absence ? C.inkSoft : disciplineColor(ev.discipline)}`, borderRadius: 6, padding: '4px 7px', boxShadow: '0 2px 8px -3px rgba(0,0,0,0.25)', cursor: ev.absence ? 'grab' : 'pointer', overflow: 'hidden', zIndex: isDragging ? 5 : 2, touchAction: ev.absence ? 'none' : 'auto' }}>
               {ev.absence && <div onMouseDown={startDrag(ev, 'resize-top')} onTouchStart={startDrag(ev, 'resize-top')} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />}
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: ev.absence ? C.inkSoft : C.navy, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.absence ? 'Indisponible' : `${ev.prenom} ${ev.nom}`}</div>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: ev.absence ? C.inkSoft : C.navy, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 4 }}>{siblingCount > 1 && <Link2 size={10} color={ACCENTS.glacier} style={{ flexShrink: 0 }} />}{ev.absence ? 'Indisponible' : `${ev.prenom} ${ev.nom}`}</div>
               <div style={{ fontSize: 10.5, color: C.inkSoft }}>{fmtHeure(minutesToTime(startM + DAY_START * 60), langue)}–{fmtHeure(minutesToTime(endM + DAY_START * 60), langue)}</div>
               {ev.absence && <div onMouseDown={startDrag(ev, 'resize-bottom')} onTouchStart={startDrag(ev, 'resize-bottom')} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />}
             </div>
@@ -1248,6 +1257,8 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
 function ReservationsView({ reservations, onNew, onEdit, C, devise, langue }) {
   const [filter, setFilter] = useState(''); const [statutFilter, setStatutFilter] = useState('Tous');
   const filtered = reservations.filter(r => (statutFilter === 'Tous' || r.statut === statutFilter)).filter(r => (r.nom + r.prenom + r.station).toLowerCase().includes(filter.toLowerCase())).sort((a, b) => b.date.localeCompare(a.date) || a.heureDebut.localeCompare(b.heureDebut));
+  // Compte les cours partageant le même groupId (réservation multi-cours), uniquement pour l'affichage.
+  const groupSiblingCount = (groupId) => groupId ? reservations.filter(r => r.groupId === groupId && r.statut !== 'Annulée').length : 0;
   const th = { textAlign: 'left', fontSize: 12, fontWeight: 700, color: C.inkSoft, textTransform: 'uppercase', letterSpacing: '.03em', padding: '10px 14px', borderBottom: `1px solid ${C.iceLine}` };
   const td = { padding: '12px 14px', fontSize: 13.5, borderBottom: `1px solid ${C.iceLine}`, color: C.ink };
   return (
@@ -1264,16 +1275,19 @@ function ReservationsView({ reservations, onNew, onEdit, C, devise, langue }) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr><th style={th}>{tUI('thClient', langue)}</th><th style={th}>{tUI('fDate', langue)}</th><th style={th}>{tUI('thHoraire', langue)}</th><th style={th}>{tUI('fDiscipline', langue)}</th><th style={th}>{tUI('fStation', langue)}</th><th style={th}>{tUI('fPrix', langue)}</th><th style={th}>{tUI('fStatut', langue)}</th><th style={th}>{tUI('thPaiement', langue)}</th><th style={th}></th></tr></thead>
           <tbody>
-            {filtered.map(r => (
+            {filtered.map(r => {
+              const siblingCount = groupSiblingCount(r.groupId);
+              return (
               <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => onEdit(r)}>
-                <td style={td}>{r.prenom} {r.nom}</td><td style={td}>{fmtDateShort(r.date)}</td><td style={td}>{fmtHeure(r.heureDebut, langue)}–{fmtHeure(r.heureFin, langue)}</td>
+                <td style={td}><div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>{siblingCount > 1 && <Link2 size={13} color={ACCENTS.glacier} title={`Fait partie d'une réservation groupée (${siblingCount} cours)`} />}{r.prenom} {r.nom}</div></td><td style={td}>{fmtDateShort(r.date)}</td><td style={td}>{fmtHeure(r.heureDebut, langue)}–{fmtHeure(r.heureFin, langue)}</td>
                 <td style={td}><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}><Pill color={disciplineColor(r.discipline)}>{r.discipline}</Pill>{r.type && r.type !== 'Heure' && <Pill color={ACCENTS.amber}>{tUI(r.type === 'Demi-journée' ? 'engDemiJournee' : 'engJournee', langue)}</Pill>}</div></td><td style={td}>{r.station}</td>
                 <td style={{ ...td, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif" }}>{fmtEUR(r.prix, devise)}</td>
                 <td style={td}><Pill color={statutColor(r.statut)}>{tVal('statut', r.statut, langue)}</Pill></td>
                 <td style={td}><Pill color={paiementColor(r.paiement)}>{tVal('paiementStatut', r.paiement, langue)}</Pill></td>
                 <td style={{ ...td, textAlign: 'right' }}><Pencil size={14} color={C.inkSoft} /></td>
               </tr>
-            ))}
+              );
+            })}
             {filtered.length === 0 && <tr><td colSpan={9} style={{ ...td, textAlign: 'center', color: C.inkSoft, padding: '32px 14px' }}>{tUI('noResults', langue)}</td></tr>}
           </tbody>
         </table>
