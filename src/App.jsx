@@ -902,7 +902,13 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
           <div className="form-grid-2">
             {field(tUI('fDate', langue), <input type="date" style={inputStyle} value={form.date} onChange={set('date')} />)}
             {field(tUI('fHeureDebut', langue), <input type="time" style={inputStyle} value={form.heureDebut} onChange={set('heureDebut')} />)}
+            {!isEdit && field('Date de fin (optionnel — bloque toute la période)', <input type="date" min={form.date} style={inputStyle} value={form.dateFin || ''} onChange={set('dateFin')} />)}
           </div>
+          {!isEdit && form.dateFin && form.dateFin > form.date && (
+            <div style={{ fontSize: 12.5, color: ACCENTS.red, fontWeight: 600, background: ACCENTS.red + '12', padding: '8px 12px', borderRadius: 8 }}>
+              Tous les jours du {fmtDateShort(form.date)} au {fmtDateShort(form.dateFin)} seront bloqués avec le même horaire.
+            </div>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: C.inkSoft }}>Durée de l'indisponibilité</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -917,7 +923,23 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
           <div>{isEdit && <button onClick={() => onDelete(form.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: ACCENTS.red, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}><Trash2 size={15} /> {tUI('btnDelete', langue)}</button>}</div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={onClose} style={{ padding: '9px 18px', borderRadius: 9, border: `1px solid ${C.iceLine}`, background: C.card, color: C.ink, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>{tUI('btnCancel', langue)}</button>
-            <button onClick={() => onSave(mode === 'indisponible' ? { ...form, prenom: 'Indisponible', nom: '', telephone: '', email: '', nationalite: '', discipline: '', niveau: '', nbPersonnes: 0, station: '', pointRdv: '', type: 'Heure', statut: 'Confirmée', paiement: 'Non payé', modePaiement: 'Non renseigné', prix: 0, notes: form.notes || 'Indisponibilité', absence: true } : form)} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: mode === 'indisponible' ? ACCENTS.red : ACCENTS.glacier, color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>{isEdit ? tUI('btnSave', langue) : (mode === 'indisponible' ? 'Bloquer ce créneau' : tUI('btnCreateReservation', langue))}</button>
+            <button onClick={() => {
+              if (mode !== 'indisponible') return onSave(form);
+              const base = { ...form, prenom: 'Indisponible', nom: '', telephone: '', email: '', nationalite: '', discipline: '', niveau: '', nbPersonnes: 0, station: '', pointRdv: '', type: 'Heure', statut: 'Confirmée', paiement: 'Non payé', modePaiement: 'Non renseigné', prix: 0, notes: form.notes || 'Indisponibilité', absence: true };
+              delete base.dateFin;
+              // Si une date de fin est renseignée (et postérieure à la date de début), on bloque
+              // toute la période d'un coup : une entrée d'indisponibilité distincte par jour,
+              // chacune reprenant le même horaire — sans toucher au reste de la logique métier.
+              if (!isEdit && form.dateFin && form.dateFin > form.date) {
+                const dates = [];
+                let cur = form.date;
+                while (cur <= form.dateFin) { dates.push(cur); cur = toKey(addDays(new Date(cur + 'T00:00:00'), 1)); }
+                const list = dates.map((dateKey, idx) => ({ ...base, date: dateKey, id: Date.now() + idx }));
+                onSave(list);
+              } else {
+                onSave(base);
+              }
+            }} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: mode === 'indisponible' ? ACCENTS.red : ACCENTS.glacier, color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>{isEdit ? tUI('btnSave', langue) : (mode === 'indisponible' ? (form.dateFin && form.dateFin > form.date ? 'Bloquer cette période' : 'Bloquer ce créneau') : tUI('btnCreateReservation', langue))}</button>
           </div>
         </div>
       </div>
@@ -1987,8 +2009,21 @@ export default function App() {
 
   const saveAll = async (list) => { setReservations(list); await persistReservations(list); };
   const realReservations = reservations.filter(r => !r.absence);
-  const handleSave = async (form) => {
-    const clean = { ...form, age: Number(form.age) || '', nbPersonnes: Number(form.nbPersonnes) || 1, prix: Number(form.prix) || 0 };
+  const cleanForm = (form) => ({ ...form, age: Number(form.age) || '', nbPersonnes: Number(form.nbPersonnes) || 1, prix: Number(form.prix) || 0 });
+  const handleSave = async (formOrList) => {
+    // Le blocage d'une période (indisponibilité multi-jours) envoie un tableau d'entrées
+    // (une par jour) au lieu d'un formulaire unique : on les fusionne toutes d'un coup,
+    // sans changer le comportement existant pour une réservation/indisponibilité simple.
+    if (Array.isArray(formOrList)) {
+      let list = reservations;
+      for (const raw of formOrList) {
+        const clean = cleanForm(raw);
+        list = clean.id && list.some(r => r.id === clean.id) ? list.map(r => r.id === clean.id ? clean : r) : [...list, { ...clean, id: clean.id || Date.now() }];
+      }
+      await saveAll(list); setModal(null);
+      return;
+    }
+    const clean = cleanForm(formOrList);
     const list = clean.id ? reservations.map(r => r.id === clean.id ? clean : r) : [...reservations, { ...clean, id: Date.now() }];
     await saveAll(list); setModal(null);
   };
