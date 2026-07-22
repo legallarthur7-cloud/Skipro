@@ -1103,12 +1103,20 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
   const groupSiblingCount = useCallback((groupId) => groupId ? reservations.filter(r => r.groupId === groupId && r.statut !== 'Annulée').length : 0, [reservations]);
   const [drag, setDrag] = useState(null);
   const didDragRef = useRef(false);
+  const gridRef = useRef(null);
   const [pendingConfirm, setPendingConfirm] = useState(null);
   const getClientY = (e) => (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+  const getClientX = (e) => (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
   const startDrag = (ev, mode) => (e) => {
     e.stopPropagation();
     const origStart = timeToMinutes(ev.heureDebut) - DAY_START * 60;
     const origEnd = timeToMinutes(ev.heureFin) - DAY_START * 60;
+    // Pour "extend-days" (glisser une indisponibilité sur plusieurs jours), on mesure la largeur
+    // d'une colonne de jour une seule fois au début du glisser, pour convertir le déplacement
+    // horizontal en nombre de jours pendant le mouvement.
+    const rect = gridRef.current ? gridRef.current.getBoundingClientRect() : null;
+    const numCols = view === 'week' ? 7 : 1;
+    const colWidth = rect ? Math.max(1, (rect.width - 52) / numCols) : 100;
     if (e.touches && mode === 'move') {
       const startY = getClientY(e);
       let touchEnded = false;
@@ -1116,18 +1124,45 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
       window.addEventListener('touchend', onEarlyEnd);
       setTimeout(() => {
         window.removeEventListener('touchend', onEarlyEnd);
-        if (!touchEnded) setDrag({ id: ev.id, ev, mode, startY, origStart, origEnd, deltaMin: 0 });
+        if (!touchEnded) setDrag({ id: ev.id, ev, mode, startY, startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0, colWidth });
       }, 400);
       return;
     }
     if (e.touches) e.preventDefault();
-    setDrag({ id: ev.id, ev, mode, startY: getClientY(e), origStart, origEnd, deltaMin: 0 });
+    setDrag({ id: ev.id, ev, mode, startY: getClientY(e), startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0, colWidth });
   };
   useEffect(() => {
     if (!drag) return;
-    const onMove = (e) => { if (e.touches) e.preventDefault(); setDrag(d => (d ? { ...d, deltaMin: Math.round(((getClientY(e) - d.startY) / ROW_HEIGHT) * 60 / 30) * 30 } : d)); };
+    const onMove = (e) => {
+      if (e.touches) e.preventDefault();
+      setDrag(d => {
+        if (!d) return d;
+        if (d.mode === 'extend-days') return { ...d, dayDelta: Math.round((getClientX(e) - d.startX) / d.colWidth) };
+        return { ...d, deltaMin: Math.round(((getClientY(e) - d.startY) / ROW_HEIGHT) * 60 / 30) * 30 };
+      });
+    };
     const onUp = () => setDrag(d => {
       if (!d) return null;
+      // Glisser une indisponibilité horizontalement (poignées gauche/droite) : on l'étend sur
+      // plusieurs jours consécutifs de la semaine affichée, en gardant le même horaire chaque
+      // jour — sans toucher à la logique de glisser vertical (heure) déjà existante ci-dessous.
+      if (d.mode === 'extend-days') {
+        const dayDelta = d.dayDelta || 0;
+        if (dayDelta === 0) return null;
+        const origIdx = weekDays.findIndex(day => toKey(day) === d.ev.date);
+        if (origIdx === -1) return null;
+        const targetIdx = Math.max(0, Math.min(6, origIdx + dayDelta));
+        const [fromIdx, toIdx] = origIdx <= targetIdx ? [origIdx, targetIdx] : [targetIdx, origIdx];
+        const datesToBlock = weekDays.slice(fromIdx, toIdx + 1).map(day => toKey(day));
+        if (datesToBlock.length <= 1) return null;
+        didDragRef.current = true;
+        const payload = datesToBlock.map((dateKey, i) => dateKey === d.ev.date ? d.ev : { ...d.ev, date: dateKey, id: Date.now() + i });
+        setPendingConfirm({
+          message: `Étendre cette indisponibilité du ${fmtDateShort(datesToBlock[0])} au ${fmtDateShort(datesToBlock[datesToBlock.length - 1])} (même horaire chaque jour) ?`,
+          payload
+        });
+        return null;
+      }
       const deltaMin = d.deltaMin || 0;
       if (deltaMin !== 0) {
         didDragRef.current = true;
@@ -1185,6 +1220,19 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
               <div style={{ fontSize: 11.5, fontWeight: 700, color: ev.absence ? C.inkSoft : C.navy, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 4 }}>{siblingCount > 1 && <Link2 size={10} color={ACCENTS.glacier} style={{ flexShrink: 0 }} />}{ev.absence ? 'Indisponible' : `${ev.prenom} ${ev.nom}`}</div>
               <div style={{ fontSize: 10.5, color: C.inkSoft }}>{fmtHeure(minutesToTime(startM + DAY_START * 60), langue)}–{fmtHeure(minutesToTime(endM + DAY_START * 60), langue)}</div>
               {ev.absence && <div onMouseDown={startDrag(ev, 'resize-bottom')} onTouchStart={startDrag(ev, 'resize-bottom')} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />}
+              {ev.absence && view === 'week' && (
+                <>
+                  {/* Poignées gauche/droite pour étendre sur plusieurs jours — élargies (18px) et avec
+                      un petit repère visuel permanent, pour rester utilisables au doigt sur mobile
+                      (pas de survol possible pour indiquer le curseur "col-resize" comme sur ordinateur). */}
+                  <div onMouseDown={startDrag(ev, 'extend-days')} onTouchStart={startDrag(ev, 'extend-days')} title="Glisser pour étendre l'indisponibilité sur plusieurs jours" style={{ position: 'absolute', top: 10, bottom: 10, left: -5, width: 18, cursor: 'col-resize', zIndex: 3, touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 3, height: '60%', minHeight: 12, borderRadius: 2, background: C.inkSoft, opacity: 0.5 }} />
+                  </div>
+                  <div onMouseDown={startDrag(ev, 'extend-days')} onTouchStart={startDrag(ev, 'extend-days')} title="Glisser pour étendre l'indisponibilité sur plusieurs jours" style={{ position: 'absolute', top: 10, bottom: 10, right: -5, width: 18, cursor: 'col-resize', zIndex: 3, touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 3, height: '60%', minHeight: 12, borderRadius: 2, background: C.inkSoft, opacity: 0.5 }} />
+                  </div>
+                </>
+              )}
             </div>
           );
         })}
@@ -1223,7 +1271,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex' }}>
+            <div style={{ display: 'flex' }} ref={gridRef}>
               <div style={{ width: 52, flexShrink: 0 }}>{hours.map(h => <div key={h} style={{ height: ROW_HEIGHT, fontSize: 11, color: C.inkSoft, textAlign: 'right', paddingRight: 8, position: 'relative', top: -6 }}>{fmtHeure(`${pad(h)}:00`, langue)}</div>)}</div>
               {(view === 'week' ? weekDays : [anchor]).map(renderDayColumn)}
             </div>
@@ -2039,7 +2087,20 @@ export default function App() {
     await saveAll(list); setModal(null);
   };
   const handleDelete = async (id) => { await saveAll(reservations.filter(r => r.id !== id)); setModal(null); };
-  const handleUpdate = async (updated) => { const list = reservations.map(r => r.id === updated.id ? updated : r); await saveAll(list); };
+  const handleUpdate = async (updatedOrList) => {
+    // Glisser une indisponibilité sur plusieurs jours (CalendarView, mode "extend-days") envoie
+    // un tableau (l'entrée d'origine + une nouvelle par jour couvert) au lieu d'un objet unique.
+    if (Array.isArray(updatedOrList)) {
+      let list = reservations;
+      for (const updated of updatedOrList) {
+        list = list.some(r => r.id === updated.id) ? list.map(r => r.id === updated.id ? updated : r) : [...list, updated];
+      }
+      await saveAll(list);
+      return;
+    }
+    const list = reservations.map(r => r.id === updatedOrList.id ? updatedOrList : r);
+    await saveAll(list);
+  };
   const handleSaveSettings = async (form) => {
     if (form.slug) {
       try {
