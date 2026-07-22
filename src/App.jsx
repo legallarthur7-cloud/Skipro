@@ -27,6 +27,9 @@ const PALETTES = {
 const ACCENTS = { glacier: '#2E6F8E', glacierDeep: '#3E8CB0', green: '#2F8F5B', blue: '#2E6F8E', black: '#181C22', red: '#C23B3B', amber: '#C99A46' };
 const disciplineColor = (d) => d === 'Ski' ? ACCENTS.blue : ACCENTS.green;
 const statutColor = (s) => s === 'Confirmée' ? ACCENTS.green : s === 'En attente' ? ACCENTS.amber : ACCENTS.red;
+// Le statut de paiement est totalement indépendant du statut de la réservation (voir PAIEMENT_STATUTS) :
+// une réservation "En attente" peut être "Non payé", une "Confirmée" peut être "Acompte reçu", etc.
+const paiementColor = (p) => p === 'Payé' ? ACCENTS.green : p === 'Acompte reçu' ? ACCENTS.amber : '#5A6B7A';
 
 const STATIONS_BY_MASSIF = {
   'Alpes du Nord': [
@@ -60,7 +63,7 @@ const STATIONS = Object.values(STATIONS_BY_MASSIF).flat();
 const NIVEAUX = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
 const DISCIPLINES = ['Ski', 'Snowboard'];
 const STATUTS = ['Confirmée', 'En attente', 'Annulée'];
-const PAIEMENT_STATUTS = ['Payé', 'Non payé'];
+const PAIEMENT_STATUTS = ['Non payé', 'Acompte reçu', 'Payé'];
 const MODES_PAIEMENT = ['Non renseigné', 'Espèces', 'Carte bancaire', 'Virement'];
 const LANGUES = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
@@ -508,7 +511,8 @@ const VALUE_TRANSLATIONS = {
   },
   paiementStatut: {
     'Payé': { Français: 'Payé', Anglais: 'Paid', Espagnol: 'Pagado', Italien: 'Pagato', Portugais: 'Pago' },
-    'Non payé': { Français: 'Non payé', Anglais: 'Unpaid', Espagnol: 'No pagado', Italien: 'Non pagato', Portugais: 'Não pago' }
+    'Non payé': { Français: 'Non payé', Anglais: 'Unpaid', Espagnol: 'No pagado', Italien: 'Non pagato', Portugais: 'Não pago' },
+    'Acompte reçu': { Français: 'Acompte reçu', Anglais: 'Deposit received', Espagnol: 'Depósito recibido', Italien: 'Acconto ricevuto', Portugais: 'Sinal recebido' }
   }
 };
 function tVal(category, value, langue) {
@@ -887,8 +891,8 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
               {hourlyHint && <span style={{ fontSize: 11.5, color: C.inkSoft }}>{tUI('suggestedRate', langue)} : {hourlyHint} {settings.devise || '€'}/h ({high ? tUI('highSeason', langue) : tUI('lowSeason', langue)})</span>}
             </div>)}
             {field(tUI('fStatut', langue), <select style={inputStyle} value={form.statut} onChange={set('statut')}>{STATUTS.map(s => <option key={s} value={s}>{tVal('statut', s, langue)}</option>)}</select>)}
-            {field(tUI('fModePaiement', langue), <select style={inputStyle} value={form.modePaiement || 'Non renseigné'} onChange={e => { const modePaiement = e.target.value; setForm(f => ({ ...f, modePaiement, paiement: modePaiement === 'Non renseigné' ? 'Non payé' : 'Payé' })); }}>{MODES_PAIEMENT.map(s => <option key={s} value={s}>{tVal('modePaiement', s, langue)}</option>)}</select>)}
-            {field(tUI('fStatutPaiement', langue), <div style={{ ...inputStyle, background: C.snowDim, color: form.paiement === 'Payé' ? ACCENTS.green : C.inkSoft, fontWeight: 600 }}>{tVal('paiementStatut', form.paiement, langue)}</div>)}
+            {field(tUI('fModePaiement', langue), <select style={inputStyle} value={form.modePaiement || 'Non renseigné'} onChange={set('modePaiement')}>{MODES_PAIEMENT.map(s => <option key={s} value={s}>{tVal('modePaiement', s, langue)}</option>)}</select>)}
+            {field(tUI('fStatutPaiement', langue), <select style={{ ...inputStyle, color: form.paiement === 'Payé' ? ACCENTS.green : form.paiement === 'Acompte reçu' ? ACCENTS.amber : C.inkSoft, fontWeight: 600 }} value={form.paiement || 'Non payé'} onChange={set('paiement')}>{PAIEMENT_STATUTS.map(s => <option key={s} value={s}>{tVal('paiementStatut', s, langue)}</option>)}</select>)}
           </div>
           {field(tUI('fNotes', langue), <textarea style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }} value={form.notes} onChange={set('notes')} />)}
         </div>
@@ -1244,7 +1248,7 @@ function ReservationsView({ reservations, onNew, onEdit, C, devise, langue }) {
                 <td style={td}><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}><Pill color={disciplineColor(r.discipline)}>{r.discipline}</Pill>{r.type && r.type !== 'Heure' && <Pill color={ACCENTS.amber}>{tUI(r.type === 'Demi-journée' ? 'engDemiJournee' : 'engJournee', langue)}</Pill>}</div></td><td style={td}>{r.station}</td>
                 <td style={{ ...td, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif" }}>{fmtEUR(r.prix, devise)}</td>
                 <td style={td}><Pill color={statutColor(r.statut)}>{tVal('statut', r.statut, langue)}</Pill></td>
-                <td style={td}><Pill color={r.paiement === 'Payé' ? ACCENTS.green : C.inkSoft}>{tVal('paiementStatut', r.paiement, langue)}</Pill></td>
+                <td style={td}><Pill color={paiementColor(r.paiement)}>{tVal('paiementStatut', r.paiement, langue)}</Pill></td>
                 <td style={{ ...td, textAlign: 'right' }}><Pencil size={14} color={C.inkSoft} /></td>
               </tr>
             ))}
@@ -1464,8 +1468,8 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, 
                 <tr key={r.id}>
                   <td style={td}>{r.prenom} {r.nom}</td><td style={td}>{fmtDateShort(r.date)}</td>
                   <td style={{ ...td, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif" }}>{fmtEUR(r.prix, devise)}</td>
-                  <td style={td}><Pill color={r.paiement === 'Payé' ? ACCENTS.green : C.inkSoft}>{tVal('paiementStatut', r.paiement, langue)}</Pill></td>
-                  <td style={td}><select value={r.modePaiement || 'Non renseigné'} onChange={e => { const modePaiement = e.target.value; onUpdate({ ...r, modePaiement, paiement: modePaiement === 'Non renseigné' ? 'Non payé' : 'Payé' }); }} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 7, padding: '5px 8px', fontSize: 12.5, color: C.inkSoft, fontWeight: 600, background: C.card }}>{MODES_PAIEMENT.map(m => <option key={m} value={m}>{tVal('modePaiement', m, langue)}</option>)}</select></td>
+                  <td style={td}><select value={r.paiement || 'Non payé'} onChange={e => onUpdate({ ...r, paiement: e.target.value })} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 7, padding: '5px 8px', fontSize: 12.5, color: paiementColor(r.paiement), fontWeight: 700, background: C.card }}>{PAIEMENT_STATUTS.map(s => <option key={s} value={s}>{tVal('paiementStatut', s, langue)}</option>)}</select></td>
+                  <td style={td}><select value={r.modePaiement || 'Non renseigné'} onChange={e => onUpdate({ ...r, modePaiement: e.target.value })} style={{ border: `1px solid ${C.iceLine}`, borderRadius: 7, padding: '5px 8px', fontSize: 12.5, color: C.inkSoft, fontWeight: 600, background: C.card }}>{MODES_PAIEMENT.map(m => <option key={m} value={m}>{tVal('modePaiement', m, langue)}</option>)}</select></td>
                   <td style={{ ...td, textAlign: 'right' }}>
                     <button onClick={() => setInvoiceFor(r)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: ACCENTS.glacier + '15', border: 'none', color: ACCENTS.glacierDeep, cursor: 'pointer', fontSize: 12.5, fontWeight: 700, padding: '6px 12px', borderRadius: 7 }}><FileText size={13} /> {tUI('btnInvoice', langue)}</button>
                   </td>
@@ -1498,7 +1502,7 @@ function PaiementsView({ reservations, onUpdate, onDelete, C, devise, settings, 
                     <div style={{ fontSize: 11.5, color: C.inkSoft, fontWeight: 600 }}>N° {String(r.id).slice(-6)}</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: C.navy, marginTop: 2 }}>{r.prenom} {r.nom}</div>
                   </div>
-                  <Pill color={r.paiement === 'Payé' ? ACCENTS.green : ACCENTS.amber}>{tVal('paiementStatut', r.paiement, langue)}</Pill>
+                  <Pill color={paiementColor(r.paiement)}>{tVal('paiementStatut', r.paiement, langue)}</Pill>
                 </div>
                 <div style={{ fontSize: 12.5, color: C.inkSoft }}>{fmtDateShort(r.date)} · {r.discipline} · {r.station}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
