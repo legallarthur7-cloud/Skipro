@@ -1916,7 +1916,7 @@ function AuthScreen({ onAuth }) {
                 </div>
               )}
 
-              {error && <div style={{ fontSize: 12.5, color: ACCENTS.red, background: ACCENTS.red + '12', borderRadius: 8, padding: '9px 11px' }}>{error}</div>}
+              {error && <div style={{ fontSize: 12.5, color: error === tUI('successAccountCreated', authLangue) ? ACCENTS.green : ACCENTS.red, background: (error === tUI('successAccountCreated', authLangue) ? ACCENTS.green : ACCENTS.red) + '12', borderRadius: 8, padding: '9px 11px' }}>{error}</div>}
 
               <button onClick={handleSubmit} disabled={loading} style={{ background: ACCENTS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 14, fontWeight: 600, cursor: loading ? 'default' : 'pointer', marginTop: 4, opacity: loading ? 0.7 : 1 }}>
                 {loading ? tUI('loadingWait', authLangue) : (mode === 'login' ? tUI('authSubmitLogin', authLangue) : tUI('authSubmitSignup', authLangue))}
