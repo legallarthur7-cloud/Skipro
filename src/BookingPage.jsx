@@ -40,6 +40,9 @@ const STATIONS = Object.values(STATIONS_BY_MASSIF).flat();
 const DISCIPLINES = ['Ski', 'Snowboard'];
 const NIVEAUX = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
 const ENGAGEMENTS = ['Heure', 'Demi-journée', 'Journée'];
+// Purement informatif : le client indique juste sa préférence, aucun paiement n'est traité en
+// ligne (voir paymentNote). Mêmes valeurs que côté moniteur (MODES_PAIEMENT dans App.jsx).
+const MODES_PAIEMENT = ['Non renseigné', 'Espèces', 'Carte bancaire', 'Virement'];
 const CRENEAUX_KEYS = ['Matin', 'Après-midi'];
 const LANGUES_CANON = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
 
@@ -154,7 +157,9 @@ const T = {
     heureDebutLabel: 'Heure de début', heureFinLabel: 'Heure de fin',
     heureRangeInvalidMsg: "L'heure de fin doit être après l'heure de début.",
     heureConflictMsg: 'Ce créneau chevauche une réservation déjà existante — merci de choisir un autre horaire.',
-    heureOutsideHoursMsg: (start, end) => `En dehors des horaires habituels (${start}–${end}) — ta demande sera quand même envoyée, à valider par le moniteur.`
+    heureOutsideHoursMsg: (start, end) => `En dehors des horaires habituels (${start}–${end}) — ta demande sera quand même envoyée, à valider par le moniteur.`,
+    modePaiementLabel: 'Mode de paiement souhaité',
+    modesPaiement: { 'Non renseigné': 'Pas de préférence', 'Espèces': 'Espèces', 'Carte bancaire': 'Carte bancaire', 'Virement': 'Virement' }
   },
   en: {
     title: 'Book a lesson', subtitle: (nom) => `Fill in this form and ${nom} will confirm your booking shortly.`,
@@ -181,7 +186,9 @@ const T = {
     heureDebutLabel: 'Start time', heureFinLabel: 'End time',
     heureRangeInvalidMsg: 'The end time must be after the start time.',
     heureConflictMsg: 'This time slot overlaps an existing booking — please choose another time.',
-    heureOutsideHoursMsg: (start, end) => `Outside usual hours (${start}–${end}) — your request will still be sent for the instructor to approve.`
+    heureOutsideHoursMsg: (start, end) => `Outside usual hours (${start}–${end}) — your request will still be sent for the instructor to approve.`,
+    modePaiementLabel: 'Preferred payment method',
+    modesPaiement: { 'Non renseigné': 'No preference', 'Espèces': 'Cash', 'Carte bancaire': 'Card', 'Virement': 'Bank transfer' }
   },
   es: {
     title: 'Reservar una clase', subtitle: (nom) => `Rellena este formulario y ${nom} confirmará tu reserva enseguida.`,
@@ -208,7 +215,9 @@ const T = {
     heureDebutLabel: 'Hora de inicio', heureFinLabel: 'Hora de fin',
     heureRangeInvalidMsg: 'La hora de fin debe ser posterior a la hora de inicio.',
     heureConflictMsg: 'Este horario se solapa con una reserva existente — elige otro horario.',
-    heureOutsideHoursMsg: (start, end) => `Fuera del horario habitual (${start}–${end}) — tu solicitud se enviará igualmente para que el monitor la valide.`
+    heureOutsideHoursMsg: (start, end) => `Fuera del horario habitual (${start}–${end}) — tu solicitud se enviará igualmente para que el monitor la valide.`,
+    modePaiementLabel: 'Método de pago preferido',
+    modesPaiement: { 'Non renseigné': 'Sin preferencia', 'Espèces': 'Efectivo', 'Carte bancaire': 'Tarjeta', 'Virement': 'Transferencia' }
   },
   de: {
     title: 'Skikurs buchen', subtitle: (nom) => `Fülle dieses Formular aus, ${nom} bestätigt deine Buchung in Kürze.`,
@@ -235,7 +244,9 @@ const T = {
     heureDebutLabel: 'Startzeit', heureFinLabel: 'Endzeit',
     heureRangeInvalidMsg: 'Die Endzeit muss nach der Startzeit liegen.',
     heureConflictMsg: 'Diese Zeit überschneidet sich mit einer bestehenden Buchung — bitte wähle eine andere Zeit.',
-    heureOutsideHoursMsg: (start, end) => `Außerhalb der üblichen Zeiten (${start}–${end}) — deine Anfrage wird trotzdem zur Bestätigung gesendet.`
+    heureOutsideHoursMsg: (start, end) => `Außerhalb der üblichen Zeiten (${start}–${end}) — deine Anfrage wird trotzdem zur Bestätigung gesendet.`,
+    modePaiementLabel: 'Bevorzugte Zahlungsart',
+    modesPaiement: { 'Non renseigné': 'Keine Präferenz', 'Espèces': 'Bar', 'Carte bancaire': 'Karte', 'Virement': 'Überweisung' }
   },
   it: {
     title: 'Prenota una lezione', subtitle: (nom) => `Compila questo modulo, ${nom} confermerà la tua prenotazione a breve.`,
@@ -262,7 +273,9 @@ const T = {
     heureDebutLabel: 'Ora di inizio', heureFinLabel: 'Ora di fine',
     heureRangeInvalidMsg: "L'orario di fine deve essere successivo all'orario di inizio.",
     heureConflictMsg: 'Questo orario si sovrappone a una prenotazione esistente — scegli un altro orario.',
-    heureOutsideHoursMsg: (start, end) => `Fuori dagli orari abituali (${start}–${end}) — la tua richiesta verrà comunque inviata per l'approvazione del maestro.`
+    heureOutsideHoursMsg: (start, end) => `Fuori dagli orari abituali (${start}–${end}) — la tua richiesta verrà comunque inviata per l'approvazione del maestro.`,
+    modePaiementLabel: 'Metodo di pagamento preferito',
+    modesPaiement: { 'Non renseigné': 'Nessuna preferenza', 'Espèces': 'Contanti', 'Carte bancaire': 'Carta', 'Virement': 'Bonifico' }
   },
   pt: {
     title: 'Reservar uma aula', subtitle: (nom) => `Preenche este formulário e ${nom} confirmará a tua reserva em breve.`,
@@ -289,7 +302,9 @@ const T = {
     heureDebutLabel: 'Hora de início', heureFinLabel: 'Hora de fim',
     heureRangeInvalidMsg: 'A hora de fim deve ser depois da hora de início.',
     heureConflictMsg: 'Este horário sobrepõe-se a uma reserva já existente — escolhe outro horário.',
-    heureOutsideHoursMsg: (start, end) => `Fora do horário habitual (${start}–${end}) — o teu pedido será enviado na mesma, para o monitor validar.`
+    heureOutsideHoursMsg: (start, end) => `Fora do horário habitual (${start}–${end}) — o teu pedido será enviado na mesma, para o monitor validar.`,
+    modePaiementLabel: 'Método de pagamento preferido',
+    modesPaiement: { 'Non renseigné': 'Sem preferência', 'Espèces': 'Dinheiro', 'Carte bancaire': 'Cartão', 'Virement': 'Transferência' }
   }
 };
 
@@ -322,7 +337,7 @@ function computePrix(cours, settings) {
 
 const emptyForm = {
   prenom: '', nom: '', telephone: '', email: '', nationalite: '', langue: 'Français', age: '',
-  nbPersonnes: 1, station: STATIONS[0], message: ''
+  nbPersonnes: 1, station: STATIONS[0], modePaiement: 'Non renseigné', message: ''
 };
 
 const emptyCoursDraft = {
@@ -497,7 +512,7 @@ export default function BookingPage({ slug }) {
       nationalite: form.nationalite, langue: form.langue, age: Number(form.age) || '',
       niveau: c.niveau, discipline: c.discipline, nbPersonnes: Number(form.nbPersonnes) || 1, station: form.station,
       pointRdv: '', date: c.date, type: c.type, creneau: c.creneau, heureDebut: c.heureDebut, heureFin: c.heureFin,
-      prix: c.prix, notes
+      prix: c.prix, modePaiement: form.modePaiement || 'Non renseigné', notes
     }));
     try {
       await postPublicBooking(slug, coursPayload);
@@ -590,6 +605,7 @@ export default function BookingPage({ slug }) {
               {field(t.age, <input type="number" style={inputStyle} value={form.age} onChange={set('age')} />)}
               {field(t.nbPersonnes, <input type="number" min="1" style={inputStyle} value={form.nbPersonnes} onChange={set('nbPersonnes')} />)}
               {field(t.station, <select style={inputStyle} value={form.station} onChange={set('station')}>{Object.entries(STATIONS_BY_MASSIF).map(([massif, list]) => <optgroup key={massif} label={massif}>{list.map(s => <option key={s}>{s}</option>)}</optgroup>)}</select>)}
+              {field(t.modePaiementLabel, <select style={inputStyle} value={form.modePaiement || 'Non renseigné'} onChange={set('modePaiement')}>{MODES_PAIEMENT.map(m => <option key={m} value={m}>{t.modesPaiement[m]}</option>)}</select>)}
             </div>
           </div>
 

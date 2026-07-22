@@ -129,7 +129,9 @@ export default async function handler(req, res) {
         groupId,
         statut: 'En attente',
         paiement: 'Non payé',
-        modePaiement: 'Non renseigné'
+        // Le client peut indiquer une préférence sur la page publique (voir BookingPage.jsx) ;
+        // ça reste purement informatif, aucun paiement n'est traité ici.
+        modePaiement: c.modePaiement || 'Non renseigné'
       }));
 
       reservations.push(...newReservations);
