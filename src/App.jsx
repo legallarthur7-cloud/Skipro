@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from 'react';
 import { supabase } from './lib/storage-shim.js';
 import {
   LayoutDashboard, Calendar as CalendarIcon, Users, User, Settings as SettingsIcon, Plus, X,
@@ -934,7 +934,10 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
                 const dates = [];
                 let cur = form.date;
                 while (cur <= form.dateFin) { dates.push(cur); cur = toKey(addDays(new Date(cur + 'T00:00:00'), 1)); }
-                const list = dates.map((dateKey, idx) => ({ ...base, date: dateKey, id: Date.now() + idx }));
+                // blockId partagé : le calendrier (vue Semaine) affiche alors toute la période
+                // comme un seul bloc déplaçable/redimensionnable, au lieu d'un bloc par jour.
+                const blockId = Date.now();
+                const list = dates.map((dateKey, idx) => ({ ...base, date: dateKey, id: blockId + idx, blockId }));
                 onSave(list);
               } else {
                 onSave(base);
@@ -1096,7 +1099,33 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
   const weekStart = startOfWeek(anchor);
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const hours = Array.from({ length: DAY_END - DAY_START }, (_, i) => DAY_START + i);
-  const byDate = useCallback((key) => reservations.filter(r => r.date === key && r.statut !== 'Annulée'), [reservations]);
+  const weekDayKeys = useMemo(() => weekDays.map(toKey), [weekDays]);
+  // Regroupe les indisponibilités multi-jours (même blockId, voir ReservationModal et le glisser
+  // "extend-days" ci-dessous) qui tombent sur une plage CONSÉCUTIVE de la semaine affichée, pour
+  // les afficher comme un seul bloc déplaçable/redimensionnable au lieu d'un bloc par jour. Les
+  // indisponibilités simples (pas de blockId, ou groupe réduit à 1 jour visible) ne sont pas
+  // concernées : elles continuent de s'afficher via renderDayColumn comme avant.
+  const { blockSpans, hiddenIds } = useMemo(() => {
+    if (view !== 'week') return { blockSpans: [], hiddenIds: new Set() };
+    const byBlock = {};
+    reservations.forEach(r => {
+      if (r.absence && r.statut !== 'Annulée' && r.blockId) {
+        (byBlock[r.blockId] = byBlock[r.blockId] || []).push(r);
+      }
+    });
+    const spans = []; const hidden = new Set();
+    Object.values(byBlock).forEach(entries => {
+      const visible = entries.filter(e => weekDayKeys.includes(e.date));
+      if (visible.length <= 1) return; // rien à fusionner, laisse le rendu normal par jour
+      const idxs = visible.map(e => weekDayKeys.indexOf(e.date)).sort((a, b) => a - b);
+      const minIdx = idxs[0], maxIdx = idxs[idxs.length - 1];
+      if (maxIdx - minIdx + 1 !== idxs.length) return; // jours non consécutifs affichés : cas limite, on ne fusionne pas
+      visible.forEach(e => hidden.add(e.id));
+      spans.push({ blockId: entries[0].blockId, entries: [...visible].sort((a, b) => a.date.localeCompare(b.date)), minIdx, maxIdx });
+    });
+    return { blockSpans: spans, hiddenIds: hidden };
+  }, [reservations, view, weekDayKeys]);
+  const byDate = useCallback((key) => reservations.filter(r => r.date === key && r.statut !== 'Annulée' && !hiddenIds.has(r.id)), [reservations, hiddenIds]);
   // Une réservation multi-cours (voir public-booking.js) partage un même groupId entre tous
   // ses cours : on s'en sert uniquement pour afficher un repère visuel dans le calendrier,
   // sans changer la logique de stockage (chaque cours reste un événement indépendant).
@@ -1104,6 +1133,18 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
   const [drag, setDrag] = useState(null);
   const didDragRef = useRef(false);
   const gridRef = useRef(null);
+  const [colWidth, setColWidth] = useState(100);
+  useLayoutEffect(() => {
+    const measure = () => {
+      if (!gridRef.current) return;
+      const rect = gridRef.current.getBoundingClientRect();
+      const numCols = view === 'week' ? 7 : 1;
+      setColWidth(Math.max(1, (rect.width - 52) / numCols));
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [view, weekDays.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const [pendingConfirm, setPendingConfirm] = useState(null);
   const getClientY = (e) => (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
   const getClientX = (e) => (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
@@ -1131,18 +1172,90 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
     if (e.touches) e.preventDefault();
     setDrag({ id: ev.id, ev, mode, startY: getClientY(e), startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0, colWidth });
   };
+  // Glisser un bloc d'indisponibilité MULTI-JOURS déjà fusionné (voir blockSpans) : tout le bloc se
+  // déplace/redimensionne d'un coup (mode 'move-days' pour le corps, 'extend-left'/'extend-right'
+  // pour les poignées de bord, 'resize-top'/'resize-bottom' pour l'horaire de toute la période).
+  const startBlockDrag = (span, mode) => (e) => {
+    e.stopPropagation();
+    const rep = span.entries[0];
+    const origStart = timeToMinutes(rep.heureDebut) - DAY_START * 60;
+    const origEnd = timeToMinutes(rep.heureFin) - DAY_START * 60;
+    if (e.touches) e.preventDefault();
+    setDrag({ kind: 'block', span, mode, startY: getClientY(e), startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0 });
+  };
   useEffect(() => {
     if (!drag) return;
     const onMove = (e) => {
       if (e.touches) e.preventDefault();
       setDrag(d => {
         if (!d) return d;
+        if (d.kind === 'block') {
+          if (d.mode === 'move-days' || d.mode === 'extend-left' || d.mode === 'extend-right') {
+            return { ...d, dayDelta: Math.round((getClientX(e) - d.startX) / colWidth) };
+          }
+          return { ...d, deltaMin: Math.round(((getClientY(e) - d.startY) / ROW_HEIGHT) * 60 / 30) * 30 };
+        }
         if (d.mode === 'extend-days') return { ...d, dayDelta: Math.round((getClientX(e) - d.startX) / d.colWidth) };
         return { ...d, deltaMin: Math.round(((getClientY(e) - d.startY) / ROW_HEIGHT) * 60 / 30) * 30 };
       });
     };
     const onUp = () => setDrag(d => {
       if (!d) return null;
+      // Glisser un bloc multi-jours déjà fusionné (span) : déplacement/redimensionnement appliqué
+      // à TOUTE la période d'un coup (voir blockSpans + startBlockDrag ci-dessus).
+      if (d.kind === 'block') {
+        const span = d.span;
+        if (d.mode === 'move-days') {
+          const dayDelta = d.dayDelta || 0;
+          if (dayDelta === 0) return null;
+          const newMin = span.minIdx + dayDelta, newMax = span.maxIdx + dayDelta;
+          if (newMin < 0 || newMax > 6) return null;
+          didDragRef.current = true;
+          const upsert = span.entries.map(en => ({ ...en, date: weekDayKeys[weekDayKeys.indexOf(en.date) + dayDelta] }));
+          setPendingConfirm({
+            message: `Déplacer cette indisponibilité du ${fmtDateShort(weekDayKeys[newMin])} au ${fmtDateShort(weekDayKeys[newMax])} ?`,
+            payload: { upsert, removeIds: [] }
+          });
+          return null;
+        }
+        if (d.mode === 'extend-left' || d.mode === 'extend-right') {
+          const dayDelta = d.dayDelta || 0;
+          if (dayDelta === 0) return null;
+          let minIdx = span.minIdx, maxIdx = span.maxIdx;
+          if (d.mode === 'extend-right') maxIdx = Math.max(minIdx, Math.min(6, maxIdx + dayDelta));
+          else minIdx = Math.min(maxIdx, Math.max(0, minIdx + dayDelta));
+          const newDates = weekDayKeys.slice(minIdx, maxIdx + 1);
+          if (newDates.length === 0) return null;
+          didDragRef.current = true;
+          const rep = span.entries[0];
+          const existingByDate = {}; span.entries.forEach(en => { existingByDate[en.date] = en; });
+          const upsert = newDates.map((dateKey, i) => existingByDate[dateKey] ? existingByDate[dateKey] : { ...rep, date: dateKey, id: Date.now() + i });
+          const keepDates = new Set(newDates);
+          const removeIds = span.entries.filter(en => !keepDates.has(en.date)).map(en => en.id);
+          setPendingConfirm({
+            message: `Ajuster cette indisponibilité du ${fmtDateShort(newDates[0])} au ${fmtDateShort(newDates[newDates.length - 1])} (même horaire chaque jour) ?`,
+            payload: { upsert, removeIds }
+          });
+          return null;
+        }
+        // resize-top / resize-bottom : change l'horaire, appliqué à tous les jours du bloc.
+        const deltaMin = d.deltaMin || 0;
+        if (deltaMin === 0) return null;
+        let newStart = d.origStart, newEnd = d.origEnd;
+        if (d.mode === 'resize-bottom') newEnd = Math.max(d.origStart + 30, d.origEnd + deltaMin);
+        else newStart = Math.min(d.origEnd - 30, d.origStart + deltaMin);
+        newStart = Math.max(0, newStart);
+        newEnd = Math.min((DAY_END - DAY_START) * 60, newEnd);
+        const heureDebut = minutesToTime(newStart + DAY_START * 60);
+        const heureFin = minutesToTime(newEnd + DAY_START * 60);
+        didDragRef.current = true;
+        const upsert = span.entries.map(en => ({ ...en, heureDebut, heureFin }));
+        setPendingConfirm({
+          message: `Modifier l'horaire de cette indisponibilité (${span.entries.length} jours) à ${heureDebut}–${heureFin} ?`,
+          payload: { upsert, removeIds: [] }
+        });
+        return null;
+      }
       // Glisser une indisponibilité horizontalement (poignées gauche/droite) : on l'étend sur
       // plusieurs jours consécutifs de la semaine affichée, en gardant le même horaire chaque
       // jour — sans toucher à la logique de glisser vertical (heure) déjà existante ci-dessous.
@@ -1156,7 +1269,10 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
         const datesToBlock = weekDays.slice(fromIdx, toIdx + 1).map(day => toKey(day));
         if (datesToBlock.length <= 1) return null;
         didDragRef.current = true;
-        const payload = datesToBlock.map((dateKey, i) => dateKey === d.ev.date ? d.ev : { ...d.ev, date: dateKey, id: Date.now() + i });
+        // blockId partagé : dès cette extension, ces jours seront affichés/déplacés comme un seul
+        // bloc (voir blockSpans plus bas) au lieu d'un bloc par jour.
+        const blockId = d.ev.blockId || d.ev.id;
+        const payload = datesToBlock.map((dateKey, i) => dateKey === d.ev.date ? { ...d.ev, blockId } : { ...d.ev, date: dateKey, id: Date.now() + i, blockId });
         setPendingConfirm({
           message: `Étendre cette indisponibilité du ${fmtDateShort(datesToBlock[0])} au ${fmtDateShort(datesToBlock[datesToBlock.length - 1])} (même horaire chaque jour) ?`,
           payload
@@ -1271,9 +1387,44 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex' }} ref={gridRef}>
+            <div style={{ display: 'flex', position: 'relative' }} ref={gridRef}>
               <div style={{ width: 52, flexShrink: 0 }}>{hours.map(h => <div key={h} style={{ height: ROW_HEIGHT, fontSize: 11, color: C.inkSoft, textAlign: 'right', paddingRight: 8, position: 'relative', top: -6 }}>{fmtHeure(`${pad(h)}:00`, langue)}</div>)}</div>
               {(view === 'week' ? weekDays : [anchor]).map(renderDayColumn)}
+              {view === 'week' && blockSpans.map(span => {
+                const isDragging = drag && drag.kind === 'block' && drag.span.blockId === span.blockId;
+                const dMin = isDragging ? (drag.deltaMin || 0) : 0;
+                const dDay = isDragging ? (drag.dayDelta || 0) : 0;
+                const rep = span.entries[0];
+                let startM = timeToMinutes(rep.heureDebut) - DAY_START * 60, endM = timeToMinutes(rep.heureFin) - DAY_START * 60;
+                if (isDragging && drag.mode === 'resize-bottom') endM = Math.max(startM + 30, endM + dMin);
+                else if (isDragging && drag.mode === 'resize-top') startM = Math.min(endM - 30, startM + dMin);
+                const top = (startM / 60) * ROW_HEIGHT, height = Math.max(((endM - startM) / 60) * ROW_HEIGHT, 24);
+                let minIdx = span.minIdx, maxIdx = span.maxIdx;
+                if (isDragging && drag.mode === 'move-days') { minIdx = Math.max(0, Math.min(6, minIdx + dDay)); maxIdx = Math.max(0, Math.min(6, maxIdx + dDay)); }
+                else if (isDragging && drag.mode === 'extend-right') maxIdx = Math.max(minIdx, Math.min(6, maxIdx + dDay));
+                else if (isDragging && drag.mode === 'extend-left') minIdx = Math.min(maxIdx, Math.max(0, minIdx + dDay));
+                const left = 52 + minIdx * colWidth + 4;
+                const width = Math.max(colWidth - 8, (maxIdx - minIdx + 1) * colWidth - 8);
+                return (
+                  <div key={span.blockId}
+                    onMouseDown={startBlockDrag(span, 'move-days')}
+                    onTouchStart={startBlockDrag(span, 'move-days')}
+                    onClick={(e) => { e.stopPropagation(); if (didDragRef.current) { didDragRef.current = false; return; } onEventClick(rep); }}
+                    title={`Indisponible du ${fmtDateShort(span.entries[0].date)} au ${fmtDateShort(span.entries[span.entries.length - 1].date)} — glisser pour déplacer, bords pour ajuster les jours, haut/bas pour l'horaire`}
+                    style={{ position: 'absolute', top, height, left, width, background: C.snowDim, borderLeft: `3px solid ${C.inkSoft}`, borderRadius: 6, padding: '4px 7px', boxShadow: '0 2px 8px -3px rgba(0,0,0,0.25)', cursor: 'grab', overflow: 'hidden', zIndex: isDragging ? 6 : 2, touchAction: 'none' }}>
+                    <div onMouseDown={startBlockDrag(span, 'resize-top')} onTouchStart={startBlockDrag(span, 'resize-top')} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: C.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Indisponible ({span.entries.length} jours)</div>
+                    <div style={{ fontSize: 10.5, color: C.inkSoft }}>{fmtHeure(minutesToTime(startM + DAY_START * 60), langue)}–{fmtHeure(minutesToTime(endM + DAY_START * 60), langue)}</div>
+                    <div onMouseDown={startBlockDrag(span, 'resize-bottom')} onTouchStart={startBlockDrag(span, 'resize-bottom')} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />
+                    <div onMouseDown={startBlockDrag(span, 'extend-left')} onTouchStart={startBlockDrag(span, 'extend-left')} title="Glisser pour ajuster le début de la période" style={{ position: 'absolute', top: 10, bottom: 10, left: -5, width: 18, cursor: 'col-resize', zIndex: 3, touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: 3, height: '60%', minHeight: 12, borderRadius: 2, background: C.inkSoft, opacity: 0.5 }} />
+                    </div>
+                    <div onMouseDown={startBlockDrag(span, 'extend-right')} onTouchStart={startBlockDrag(span, 'extend-right')} title="Glisser pour ajuster la fin de la période" style={{ position: 'absolute', top: 10, bottom: 10, right: -5, width: 18, cursor: 'col-resize', zIndex: 3, touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: 3, height: '60%', minHeight: 12, borderRadius: 2, background: C.inkSoft, opacity: 0.5 }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -2088,6 +2239,18 @@ export default function App() {
   };
   const handleDelete = async (id) => { await saveAll(reservations.filter(r => r.id !== id)); setModal(null); };
   const handleUpdate = async (updatedOrList) => {
+    // Glisser un bloc d'indisponibilité multi-jours (CalendarView, mode "move-days"/"extend-left"/
+    // "extend-right"/resize horaire sur tout le bloc) envoie { upsert, removeIds } : upsert crée/
+    // met à jour les jours concernés, removeIds supprime ceux qui ne font plus partie de la période.
+    if (updatedOrList && !Array.isArray(updatedOrList) && Array.isArray(updatedOrList.upsert)) {
+      const { upsert, removeIds } = updatedOrList;
+      let list = reservations.filter(r => !removeIds.includes(r.id));
+      for (const updated of upsert) {
+        list = list.some(r => r.id === updated.id) ? list.map(r => r.id === updated.id ? updated : r) : [...list, updated];
+      }
+      await saveAll(list);
+      return;
+    }
     // Glisser une indisponibilité sur plusieurs jours (CalendarView, mode "extend-days") envoie
     // un tableau (l'entrée d'origine + une nouvelle par jour couvert) au lieu d'un objet unique.
     if (Array.isArray(updatedOrList)) {
