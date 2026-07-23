@@ -1439,7 +1439,10 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
           <div className="cal-scroll" ref={scrollRef}>
             <div className={view === 'week' ? 'cal-min' : ''}>
             <div style={{ display: 'flex' }}>
-              <div style={{ width: 52, flexShrink: 0 }} />
+              {/* Colonne des heures : "sticky" à gauche pour rester visible pendant le défilement
+                  horizontal sur mobile (vue Semaine plus large que l'écran), au lieu de disparaître
+                  avec le reste du contenu. */}
+              <div style={{ width: 52, flexShrink: 0, position: 'sticky', left: 0, zIndex: 4, background: C.card }} />
               {(view === 'week' ? weekDays : [anchor]).map(d => (
                 <div key={toKey(d)} style={{ flex: 1, textAlign: 'center', padding: '12px 0', borderBottom: `1px solid ${C.iceLine}`, borderLeft: `1px solid ${C.iceLine}` }}>
                   <div style={{ fontSize: 11.5, color: C.inkSoft, textTransform: 'uppercase', fontWeight: 600 }}>{d.toLocaleDateString(locale, { weekday: 'short' })}</div>
@@ -1448,7 +1451,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
               ))}
             </div>
             <div style={{ display: 'flex', position: 'relative' }} ref={gridRef}>
-              <div style={{ width: 52, flexShrink: 0 }}>{hours.map(h => <div key={h} style={{ height: ROW_HEIGHT, fontSize: 11, color: C.inkSoft, textAlign: 'right', paddingRight: 8, position: 'relative', top: -6 }}>{fmtHeure(`${pad(h)}:00`, langue)}</div>)}</div>
+              <div style={{ width: 52, flexShrink: 0, position: 'sticky', left: 0, zIndex: 4, background: C.card }}>{hours.map(h => <div key={h} style={{ height: ROW_HEIGHT, fontSize: 11, color: C.inkSoft, textAlign: 'right', paddingRight: 8, position: 'relative', top: -6 }}>{fmtHeure(`${pad(h)}:00`, langue)}</div>)}</div>
               {(view === 'week' ? weekDays : [anchor]).map(renderDayColumn)}
               {view === 'week' && blockSpans.map(span => {
                 const isDragging = drag && drag.kind === 'block' && drag.span.blockId === span.blockId;
