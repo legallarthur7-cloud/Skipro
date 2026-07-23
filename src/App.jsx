@@ -1133,6 +1133,32 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
   const [drag, setDrag] = useState(null);
   const didDragRef = useRef(false);
   const gridRef = useRef(null);
+  // La vue Semaine peut être plus large que l'écran sur mobile (voir .cal-min, min-width 680px) et
+  // nécessite alors un défilement horizontal. scrollRef pointe vers ce conteneur défilant, pour
+  // pouvoir (a) le faire défiler automatiquement quand on glisse un bloc près d'un bord de l'écran,
+  // et (b) corriger le calcul du déplacement horizontal pour tenir compte de ce défilement.
+  const scrollRef = useRef(null);
+  const autoScrollDirRef = useRef(0);
+  const autoScrollRafRef = useRef(null);
+  const runAutoScroll = () => {
+    if (!scrollRef.current || autoScrollDirRef.current === 0) { autoScrollRafRef.current = null; return; }
+    scrollRef.current.scrollLeft += autoScrollDirRef.current * 14;
+    autoScrollRafRef.current = requestAnimationFrame(runAutoScroll);
+  };
+  const updateAutoScroll = (clientX) => {
+    if (!scrollRef.current) return;
+    const EDGE = 40;
+    const rect = scrollRef.current.getBoundingClientRect();
+    let dir = 0;
+    if (clientX < rect.left + EDGE) dir = -1;
+    else if (clientX > rect.right - EDGE) dir = 1;
+    autoScrollDirRef.current = dir;
+    if (dir !== 0 && !autoScrollRafRef.current) autoScrollRafRef.current = requestAnimationFrame(runAutoScroll);
+  };
+  const stopAutoScroll = () => {
+    autoScrollDirRef.current = 0;
+    if (autoScrollRafRef.current) { cancelAnimationFrame(autoScrollRafRef.current); autoScrollRafRef.current = null; }
+  };
   const [colWidth, setColWidth] = useState(100);
   useLayoutEffect(() => {
     const measure = () => {
@@ -1158,6 +1184,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
     const rect = gridRef.current ? gridRef.current.getBoundingClientRect() : null;
     const numCols = view === 'week' ? 7 : 1;
     const colWidth = rect ? Math.max(1, (rect.width - 52) / numCols) : 100;
+    const scrollStart = scrollRef.current ? scrollRef.current.scrollLeft : 0;
     if (e.touches && mode === 'move') {
       const startY = getClientY(e);
       let touchEnded = false;
@@ -1165,12 +1192,12 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
       window.addEventListener('touchend', onEarlyEnd);
       setTimeout(() => {
         window.removeEventListener('touchend', onEarlyEnd);
-        if (!touchEnded) setDrag({ id: ev.id, ev, mode, startY, startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0, colWidth });
+        if (!touchEnded) setDrag({ id: ev.id, ev, mode, startY, startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0, colWidth, scrollStart });
       }, 400);
       return;
     }
     if (e.touches) e.preventDefault();
-    setDrag({ id: ev.id, ev, mode, startY: getClientY(e), startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0, colWidth });
+    setDrag({ id: ev.id, ev, mode, startY: getClientY(e), startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0, colWidth, scrollStart });
   };
   // Glisser un bloc d'indisponibilité MULTI-JOURS déjà fusionné (voir blockSpans) : tout le bloc se
   // déplace/redimensionne d'un coup (mode 'move-days' pour le corps, 'extend-left'/'extend-right'
@@ -1180,15 +1207,26 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
     const rep = span.entries[0];
     const origStart = timeToMinutes(rep.heureDebut) - DAY_START * 60;
     const origEnd = timeToMinutes(rep.heureFin) - DAY_START * 60;
+    const scrollStart = scrollRef.current ? scrollRef.current.scrollLeft : 0;
     if (e.touches) e.preventDefault();
-    setDrag({ kind: 'block', span, mode, startY: getClientY(e), startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0 });
+    setDrag({ kind: 'block', span, mode, startY: getClientY(e), startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0, scrollStart });
   };
   useEffect(() => {
     if (!drag) return;
     const onMove = (e) => {
       if (e.touches) e.preventDefault();
+      const clientX = getClientX(e);
+      // Défilement automatique de la vue Semaine quand on approche d'un bord de l'écran (utile sur
+      // mobile, où le calendrier est plus large que l'écran — voir .cal-min).
+      const horizontalModes = ['move-days', 'extend-left', 'extend-right', 'extend-days'];
+      updateAutoScroll(horizontalModes.includes((drag && drag.mode)) ? clientX : NaN);
       setDrag(d => {
         if (!d) return d;
+        // Le défilement auto décale le contenu sous le doigt : on ajoute le défilement cumulé
+        // depuis le début du glisser au déplacement brut du doigt, pour que le calcul du nombre
+        // de jours reste juste même quand le calendrier a défilé pendant le geste.
+        const scrollNow = scrollRef.current ? scrollRef.current.scrollLeft : 0;
+        const scrollOffset = scrollNow - (d.scrollStart || 0);
         if (d.kind === 'block') {
           // 'move-days' (glisser le corps du bloc) bouge à la fois les jours (X) ET l'horaire (Y) ;
           // les poignées de bord ('extend-left'/'extend-right') ne bougent que les jours ; les
@@ -1196,20 +1234,20 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
           if (d.mode === 'move-days') {
             return {
               ...d,
-              dayDelta: Math.round((getClientX(e) - d.startX) / colWidth),
+              dayDelta: Math.round((getClientX(e) - d.startX + scrollOffset) / colWidth),
               deltaMin: Math.round(((getClientY(e) - d.startY) / ROW_HEIGHT) * 60 / 30) * 30
             };
           }
           if (d.mode === 'extend-left' || d.mode === 'extend-right') {
-            return { ...d, dayDelta: Math.round((getClientX(e) - d.startX) / colWidth) };
+            return { ...d, dayDelta: Math.round((getClientX(e) - d.startX + scrollOffset) / colWidth) };
           }
           return { ...d, deltaMin: Math.round(((getClientY(e) - d.startY) / ROW_HEIGHT) * 60 / 30) * 30 };
         }
-        if (d.mode === 'extend-days') return { ...d, dayDelta: Math.round((getClientX(e) - d.startX) / d.colWidth) };
+        if (d.mode === 'extend-days') return { ...d, dayDelta: Math.round((getClientX(e) - d.startX + scrollOffset) / d.colWidth) };
         return { ...d, deltaMin: Math.round(((getClientY(e) - d.startY) / ROW_HEIGHT) * 60 / 30) * 30 };
       });
     };
-    const onUp = () => setDrag(d => {
+    const onUp = () => { stopAutoScroll(); setDrag(d => {
       if (!d) return null;
       // Glisser un bloc multi-jours déjà fusionné (span) : déplacement/redimensionnement appliqué
       // à TOUTE la période d'un coup (voir blockSpans + startBlockDrag ci-dessus).
@@ -1318,7 +1356,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
         setPendingConfirm({ message: msg, payload: { ...d.ev, heureDebut, heureFin } });
       }
       return null;
-    });
+    }); };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     window.addEventListener('touchmove', onMove, { passive: false });
@@ -1398,7 +1436,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
         <MonthGrid anchor={anchor} reservations={reservations} onDayClick={(key) => { setAnchor(new Date(key + 'T00:00:00')); setView('day'); }} C={C} langue={langue} />
       ) : (
         <div style={{ background: C.card, border: `1px solid ${C.iceLine}`, borderRadius: 14, overflow: 'hidden' }}>
-          <div className="cal-scroll">
+          <div className="cal-scroll" ref={scrollRef}>
             <div className={view === 'week' ? 'cal-min' : ''}>
             <div style={{ display: 'flex' }}>
               <div style={{ width: 52, flexShrink: 0 }} />
