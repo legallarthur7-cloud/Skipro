@@ -832,7 +832,7 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings }) {
     if (!(dureeMin > 0)) return '';
     const high = isHighSeason(dateKey, settings);
     const hourlyRate = discipline === 'Ski' ? (high ? settings.tarifSkiHaute : settings.tarifSkiBasse) : (high ? settings.tarifSnowboardHaute : settings.tarifSnowboardBasse);
-    return Math.round(hourlyRate * (dureeMin / 60) * 100) / 100;
+    return Math.ceil(hourlyRate * (dureeMin / 60));
   }, [settings]);
 
   const setEngagement = (e) => {
