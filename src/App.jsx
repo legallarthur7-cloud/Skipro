@@ -731,7 +731,7 @@ const RESPONSIVE_CSS = `
   .form-grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
   .form-grid-2 > div, .form-grid-3 > div{ min-width:0; }
   .header-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-  .cal-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .cal-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; -webkit-user-select:none; -moz-user-select:none; user-select:none; }
   .cal-min{ min-width:680px; }
 
   @media (max-width:900px){
