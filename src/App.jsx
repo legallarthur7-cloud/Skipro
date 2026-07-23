@@ -1109,19 +1109,24 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
     if (view !== 'week') return { blockSpans: [], hiddenIds: new Set() };
     const byBlock = {};
     reservations.forEach(r => {
-      if (r.absence && r.statut !== 'Annulée' && r.blockId) {
-        (byBlock[r.blockId] = byBlock[r.blockId] || []).push(r);
+      // Toute indisponibilité (même sur un seul jour) passe par ce système unifié : elle est
+      // regroupée par blockId si elle en a un (période multi-jours), sinon elle forme son propre
+      // groupe d'un seul jour — dans les deux cas, le même bloc déplaçable/redimensionnable
+      // (jours ET horaires en un seul geste) s'applique, quel que soit le nombre de jours.
+      if (r.absence && r.statut !== 'Annulée') {
+        const key = r.blockId || `single-${r.id}`;
+        (byBlock[key] = byBlock[key] || []).push(r);
       }
     });
     const spans = []; const hidden = new Set();
-    Object.values(byBlock).forEach(entries => {
+    Object.entries(byBlock).forEach(([key, entries]) => {
       const visible = entries.filter(e => weekDayKeys.includes(e.date));
-      if (visible.length <= 1) return; // rien à fusionner, laisse le rendu normal par jour
+      if (visible.length === 0) return;
       const idxs = visible.map(e => weekDayKeys.indexOf(e.date)).sort((a, b) => a - b);
       const minIdx = idxs[0], maxIdx = idxs[idxs.length - 1];
-      if (maxIdx - minIdx + 1 !== idxs.length) return; // jours non consécutifs affichés : cas limite, on ne fusionne pas
+      if (maxIdx - minIdx + 1 !== idxs.length) return; // jours non consécutifs affichés : cas limite, rendu par jour en repli
       visible.forEach(e => hidden.add(e.id));
-      spans.push({ blockId: entries[0].blockId, entries: [...visible].sort((a, b) => a.date.localeCompare(b.date)), minIdx, maxIdx });
+      spans.push({ blockId: entries[0].blockId || null, spanKey: key, entries: [...visible].sort((a, b) => a.date.localeCompare(b.date)), minIdx, maxIdx });
     });
     return { blockSpans: spans, hiddenIds: hidden };
   }, [reservations, view, weekDayKeys]);
@@ -1270,7 +1275,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
             return deltaMin !== 0 ? { ...en, date, heureDebut, heureFin } : { ...en, date };
           });
           const parts = [];
-          if (dayDelta !== 0) parts.push(`aux jours du ${fmtDateShort(weekDayKeys[newMin])} au ${fmtDateShort(weekDayKeys[newMax])}`);
+          if (dayDelta !== 0) parts.push(newMin === newMax ? `au jour ${fmtDateShort(weekDayKeys[newMin])}` : `aux jours du ${fmtDateShort(weekDayKeys[newMin])} au ${fmtDateShort(weekDayKeys[newMax])}`);
           if (deltaMin !== 0) parts.push(`à l'horaire ${heureDebut}–${heureFin}`);
           setPendingConfirm({
             message: `Déplacer cette indisponibilité ${parts.join(' et ')} ?`,
@@ -1288,8 +1293,14 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
           if (newDates.length === 0) return null;
           didDragRef.current = true;
           const rep = span.entries[0];
+          // blockId : nécessaire dès que la période couvre 2 jours ou plus (pour rester fusionnée en
+          // un seul bloc au prochain rendu) ; inutile si on la ramène à 1 seul jour (on l'enlève).
+          const blockId = newDates.length > 1 ? (rep.blockId || rep.id) : undefined;
           const existingByDate = {}; span.entries.forEach(en => { existingByDate[en.date] = en; });
-          const upsert = newDates.map((dateKey, i) => existingByDate[dateKey] ? existingByDate[dateKey] : { ...rep, date: dateKey, id: Date.now() + i });
+          const upsert = newDates.map((dateKey, i) => {
+            const existing = existingByDate[dateKey];
+            return existing ? { ...existing, blockId } : { ...rep, date: dateKey, id: Date.now() + i, blockId };
+          });
           const keepDates = new Set(newDates);
           const removeIds = span.entries.filter(en => !keepDates.has(en.date)).map(en => en.id);
           setPendingConfirm({
@@ -1454,7 +1465,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
               <div style={{ width: 52, flexShrink: 0, position: 'sticky', left: 0, zIndex: 20, background: C.card, pointerEvents: 'none' }}>{hours.map(h => <div key={h} style={{ height: ROW_HEIGHT, fontSize: 11, color: C.inkSoft, textAlign: 'right', paddingRight: 8, position: 'relative', top: -6 }}>{fmtHeure(`${pad(h)}:00`, langue)}</div>)}</div>
               {(view === 'week' ? weekDays : [anchor]).map(renderDayColumn)}
               {view === 'week' && blockSpans.map(span => {
-                const isDragging = drag && drag.kind === 'block' && drag.span.blockId === span.blockId;
+                const isDragging = drag && drag.kind === 'block' && drag.span.spanKey === span.spanKey;
                 const dMin = isDragging ? (drag.deltaMin || 0) : 0;
                 const dDay = isDragging ? (drag.dayDelta || 0) : 0;
                 const rep = span.entries[0];
@@ -1470,14 +1481,14 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
                 const left = 52 + minIdx * colWidth + 4;
                 const width = Math.max(colWidth - 8, (maxIdx - minIdx + 1) * colWidth - 8);
                 return (
-                  <div key={span.blockId}
+                  <div key={span.spanKey}
                     onMouseDown={startBlockDrag(span, 'move-days')}
                     onTouchStart={startBlockDrag(span, 'move-days')}
                     onClick={(e) => { e.stopPropagation(); if (didDragRef.current) { didDragRef.current = false; return; } onEventClick(rep); }}
-                    title={`Indisponible du ${fmtDateShort(span.entries[0].date)} au ${fmtDateShort(span.entries[span.entries.length - 1].date)} — glisser pour déplacer, bords pour ajuster les jours, haut/bas pour l'horaire`}
+                    title={span.entries.length > 1 ? `Indisponible du ${fmtDateShort(span.entries[0].date)} au ${fmtDateShort(span.entries[span.entries.length - 1].date)} — glisser pour déplacer, bords pour ajuster les jours, haut/bas pour l'horaire` : `Indisponible le ${fmtDateShort(span.entries[0].date)} — glisser pour déplacer (jour + horaire), bords pour l'étendre sur plusieurs jours`}
                     style={{ position: 'absolute', top, height, left, width, background: C.snowDim, borderLeft: `3px solid ${C.inkSoft}`, borderRadius: 6, padding: '4px 7px', boxShadow: '0 2px 8px -3px rgba(0,0,0,0.25)', cursor: 'grab', overflow: 'hidden', zIndex: isDragging ? 6 : 2, touchAction: 'none' }}>
                     <div onMouseDown={startBlockDrag(span, 'resize-top')} onTouchStart={startBlockDrag(span, 'resize-top')} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />
-                    <div style={{ fontSize: 11.5, fontWeight: 700, color: C.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Indisponible ({span.entries.length} jours)</div>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: C.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{span.entries.length > 1 ? `Indisponible (${span.entries.length} jours)` : 'Indisponible'}</div>
                     <div style={{ fontSize: 10.5, color: C.inkSoft }}>{fmtHeure(minutesToTime(startM + DAY_START * 60), langue)}–{fmtHeure(minutesToTime(endM + DAY_START * 60), langue)}</div>
                     <div onMouseDown={startBlockDrag(span, 'resize-bottom')} onTouchStart={startBlockDrag(span, 'resize-bottom')} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />
                     <div onMouseDown={startBlockDrag(span, 'extend-left')} onTouchStart={startBlockDrag(span, 'extend-left')} title="Glisser pour ajuster le début de la période" style={{ position: 'absolute', top: 10, bottom: 10, left: -5, width: 18, cursor: 'col-resize', zIndex: 3, touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
