@@ -1322,6 +1322,22 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
     return () => window.removeEventListener('resize', measure);
   }, [view, weekDays.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const [pendingConfirm, setPendingConfirm] = useState(null);
+  // Vérifie si le déplacement/redimensionnement en attente de confirmation créerait un chevauchement
+  // avec une réservation ou indisponibilité existante (hors entrées déplacées/supprimées elles-mêmes).
+  // Tous les formats de payload passent par ici : objet simple, tableau, ou { upsert, removeIds }.
+  const dragConflict = useMemo(() => {
+    if (!pendingConfirm) return null;
+    const p = pendingConfirm.payload;
+    const moved = Array.isArray(p) ? p : (p && Array.isArray(p.upsert)) ? p.upsert : [p];
+    const movedIds = new Set(moved.map(m => m.id));
+    const removedIds = new Set((p && !Array.isArray(p) && p.removeIds) || []);
+    for (const m of moved) {
+      const s = timeToMinutes(m.heureDebut), e = timeToMinutes(m.heureFin);
+      const hit = reservations.find(r => !movedIds.has(r.id) && !removedIds.has(r.id) && r.date === m.date && r.statut !== 'Annulée' && overlaps(s, e, timeToMinutes(r.heureDebut), timeToMinutes(r.heureFin)));
+      if (hit) return { date: m.date, label: hit.absence ? 'une indisponibilité' : `la réservation de ${hit.prenom} ${hit.nom}` };
+    }
+    return null;
+  }, [pendingConfirm, reservations]);
   const getClientY = (e) => (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
   const getClientX = (e) => (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
   const startDrag = (ev, mode) => (e) => {
@@ -1655,11 +1671,24 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
     {pendingConfirm && (
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,18,27,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 20 }} onClick={() => setPendingConfirm(null)}>
         <div style={{ background: C.snow, borderRadius: 16, width: '100%', maxWidth: 380, boxShadow: '0 30px 80px -30px rgba(0,0,0,0.5)', padding: 24 }} onClick={e => e.stopPropagation()}>
-          <p style={{ fontSize: 14.5, color: C.ink, lineHeight: 1.5, marginBottom: 20 }}>{pendingConfirm.message}</p>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-            <button onClick={() => setPendingConfirm(null)} style={{ padding: '9px 18px', borderRadius: 9, border: `1px solid ${C.iceLine}`, background: C.card, color: C.ink, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>Annuler</button>
-            <button onClick={() => { onAbsenceUpdate(pendingConfirm.payload); setPendingConfirm(null); }} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: ACCENTS.glacier, color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>Confirmer</button>
-          </div>
+          {dragConflict ? (
+            <>
+              <p style={{ fontSize: 14.5, color: ACCENTS.red, fontWeight: 600, lineHeight: 1.5, marginBottom: 20 }}>
+                Impossible : ce déplacement chevaucherait {dragConflict.label} le {fmtDateShort(dragConflict.date)}. Le bloc reste à sa place d'origine.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={() => setPendingConfirm(null)} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: ACCENTS.glacier, color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>OK</button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: 14.5, color: C.ink, lineHeight: 1.5, marginBottom: 20 }}>{pendingConfirm.message}</p>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                <button onClick={() => setPendingConfirm(null)} style={{ padding: '9px 18px', borderRadius: 9, border: `1px solid ${C.iceLine}`, background: C.card, color: C.ink, cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>Annuler</button>
+                <button onClick={() => { onAbsenceUpdate(pendingConfirm.payload); setPendingConfirm(null); }} style={{ padding: '9px 18px', borderRadius: 9, border: 'none', background: ACCENTS.glacier, color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>Confirmer</button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     )}
