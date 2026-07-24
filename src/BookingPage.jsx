@@ -113,7 +113,9 @@ const SCHOOL_HOLIDAYS = [
   { name: 'Été', A: ['2027-07-03', '2027-08-31'], B: ['2027-07-03', '2027-08-31'], C: ['2027-07-03', '2027-08-31'] },
 ];
 const inRange = (dateKey, [start, end]) => dateKey >= start && dateKey <= end;
-const isSchoolHoliday = (dateKey, zone) => SCHOOL_HOLIDAYS.some(p => zone === 'Toutes' ? (inRange(dateKey, p.A) || inRange(dateKey, p.B) || inRange(dateKey, p.C)) : inRange(dateKey, p[zone]));
+// Les vacances d'Été sont exclues du calcul de haute saison (pas de saison de ski en juillet-août) —
+// même logique que côté admin (App.jsx), pour que le client voie exactement le même prix que le moniteur.
+const isSchoolHoliday = (dateKey, zone) => SCHOOL_HOLIDAYS.filter(p => p.name !== 'Été').some(p => zone === 'Toutes' ? (inRange(dateKey, p.A) || inRange(dateKey, p.B) || inRange(dateKey, p.C)) : inRange(dateKey, p[zone]));
 const isHighSeason = (dateKey, settings) => {
   if (settings.seasonMode === 'manuel') {
     const md = monthDay(dateKey); const start = settings.hauteSaisonDebut, end = settings.hauteSaisonFin;
@@ -332,7 +334,8 @@ function computePrix(cours, settings) {
   if (cours.type === 'Demi-journée') return high ? settings.tarifDemiJourneeHaute : settings.tarifDemiJourneeBasse;
   const hourlyRate = cours.discipline === 'Ski' ? (high ? settings.tarifSkiHaute : settings.tarifSkiBasse) : (high ? settings.tarifSnowboardHaute : settings.tarifSnowboardBasse);
   const duree = cours.duree || HEURE_DURATION;
-  return hourlyRate * (duree / 60);
+  // Arrondi à l'euro supérieur, comme côté admin — le client voit le même montant que le moniteur.
+  return Math.ceil(hourlyRate * (duree / 60));
 }
 
 const emptyForm = {
