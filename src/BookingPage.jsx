@@ -704,6 +704,13 @@ export default function BookingPage({ slug }) {
           </button>
           <p style={{ fontSize: 11.5, color: COLORS.inkSoft, textAlign: 'center' }}>{t.paymentNote(settings.nom)}</p>
         </div>
+        {/* Pied de page légal : liens obligatoires visibles par les clients (RGPD, LCEN). */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 14, flexWrap: 'wrap', marginTop: 24, fontSize: 11.5 }}>
+          <a href="/legal/mentions" style={{ color: COLORS.inkSoft, textDecoration: 'none' }}>Mentions légales</a>
+          <a href="/legal/confidentialite" style={{ color: COLORS.inkSoft, textDecoration: 'none' }}>Confidentialité</a>
+          <a href="/legal/cgu" style={{ color: COLORS.inkSoft, textDecoration: 'none' }}>CGU</a>
+          <a href="/legal/cgv" style={{ color: COLORS.inkSoft, textDecoration: 'none' }}>CGV</a>
+        </div>
       </div>
     </div>
   );
