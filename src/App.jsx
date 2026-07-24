@@ -615,6 +615,7 @@ const isHighSeason = (dateKey, settings) => {
    STORAGE
    ================================================================================== */
 const RES_KEY = 'skipro-reservations-v1';
+const RES_BACKUP_KEY = 'skipro-reservations-backup-v1';
 const SETTINGS_KEY = 'skipro-settings-v1';
 
 const DEFAULT_SETTINGS = {
@@ -707,7 +708,28 @@ async function loadReservations() {
   try { const r = await window.storage.get(RES_KEY); return JSON.parse(r.value); }
   catch (e) { return []; }
 }
-async function persistReservations(list) { try { await window.storage.set(RES_KEY, JSON.stringify(list)); } catch (e) { console.error(e); } }
+async function persistReservations(list) {
+  try {
+    // ---- Garde-fou anti-perte de données ----
+    // On relit ce qui est réellement enregistré côté serveur avant d'écrire.
+    let prev = [];
+    try { const r = await window.storage.get(RES_KEY); prev = JSON.parse(r.value) || []; } catch (e) { /* première sauvegarde : rien côté serveur */ }
+    // 1. On refuse d'écraser plusieurs réservations existantes par une liste vide : une suppression
+    //    légitime se fait toujours une réservation à la fois, donc passer de 2+ à 0 d'un coup est
+    //    forcément un bug (c'est exactement le symptôme de la perte de données déjà observée).
+    if (Array.isArray(prev) && prev.length > 1 && (!Array.isArray(list) || list.length === 0)) {
+      console.error(`SkiPro — sauvegarde BLOQUÉE : tentative d'écraser ${prev.length} réservations par une liste vide.`);
+      alert("Sauvegarde bloquée : l'application a tenté d'effacer toutes tes réservations d'un coup (bug détecté). Tes données sont intactes — recharge la page.");
+      return;
+    }
+    // 2. Copie de secours de la version précédente avant chaque écriture : en cas de problème,
+    //    la clé skipro-reservations-backup-v1 contient toujours l'état d'avant la dernière sauvegarde.
+    if (Array.isArray(prev) && prev.length > 0) {
+      try { await window.storage.set(RES_BACKUP_KEY, JSON.stringify(prev)); } catch (e) { console.error('SkiPro — échec de la copie de secours :', e); }
+    }
+    await window.storage.set(RES_KEY, JSON.stringify(list));
+  } catch (e) { console.error(e); }
+}
 async function loadSettings() {
   try { const r = await window.storage.get(SETTINGS_KEY); return { ...DEFAULT_SETTINGS, ...JSON.parse(r.value) }; }
   catch (e) { return DEFAULT_SETTINGS; }
