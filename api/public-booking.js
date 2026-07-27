@@ -38,6 +38,28 @@ async function getRow(userId, key) {
   return data && data.length > 0 ? data[0].value : null;
 }
 
+// Envoi d'e-mail "best effort" : un échec n'interrompt jamais le traitement de la réservation.
+// Nécessite la variable d'environnement RESEND_API_KEY (voir Vercel).
+async function sendMail({ to, subject, html }) {
+  if (!process.env.RESEND_API_KEY || !to) return;
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+      body: JSON.stringify({ from: 'SkiPro <notifications@skipro-app.com>', to: [to], subject, html })
+    });
+  } catch (e) {
+    console.error('E-mail non envoyé :', e.message);
+  }
+}
+
+const mailShell = (titre, corps) => `
+  <div style="font-family:Arial,sans-serif;max-width:520px">
+    <h2 style="color:#0f2c46">${titre}</h2>
+    ${corps}
+    <p style="color:#8a97a3;font-size:12px;margin-top:24px">SkiPro — skipro-app.com</p>
+  </div>`;
+
 export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
@@ -86,7 +108,8 @@ export default async function handler(req, res) {
         iban: settings.iban || '',
         bic: settings.bic || '',
         banque: settings.banque || '',
-        lienPaiement: settings.lienPaiement || ''
+        lienPaiement: settings.lienPaiement || '',
+        acomptePct: settings.acomptePct === undefined || settings.acomptePct === '' ? 30 : Number(settings.acomptePct)
       };
 
       return res.status(200).json({ userId, settings: publicSettings, busySlots });
@@ -120,6 +143,41 @@ export default async function handler(req, res) {
             shared: false,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id,key,shared' });
+
+          // Notifications : accusé de réception au client + alerte au moniteur pour qu'il
+          // vérifie l'arrivée des fonds sur son compte avant de passer la réservation en "Payé".
+          const lot = updated.filter(r => String(r.groupId) === String(declaredGroupId));
+          const c0 = lot[0] || {};
+          const montant = lot.reduce((s, r) => s + (Number(r.prix) || 0), 0);
+          const lignes = lot.map(r => `<li>${r.date} — ${r.heureDebut}–${r.heureFin}${r.discipline ? ' · ' + r.discipline : ''}</li>`).join('');
+          const ref = `SKIPRO-${declaredGroupId}`;
+
+          const settingsRaw2 = await getRow(uid, SETTINGS_KEY);
+          const set2 = settingsRaw2 ? JSON.parse(settingsRaw2) : {};
+
+          if (c0.email) {
+            await sendMail({
+              to: c0.email,
+              subject: `Virement bien noté — réservation ${ref}`,
+              html: mailShell('Merci, ton virement a été signalé', `
+                <p>Bonjour ${c0.prenom || ''},</p>
+                <p>Nous avons bien enregistré que tu as effectué le virement de <strong>${montant} €</strong> (référence <strong>${ref}</strong>) pour :</p>
+                <ul>${lignes}</ul>
+                <p>${set2.nom || 'Ton moniteur'} confirmera la réception des fonds sur son compte. Tu n'as rien d'autre à faire.</p>`)
+            });
+          }
+          if (set2.email) {
+            await sendMail({
+              to: set2.email,
+              subject: `Virement annoncé — ${c0.prenom || ''} ${c0.nom || ''} (${montant} €)`,
+              html: mailShell('Un client a signalé son virement', `
+                <p><strong>${c0.prenom || ''} ${c0.nom || ''}</strong>${c0.telephone ? ' · ' + c0.telephone : ''} indique avoir effectué un virement de <strong>${montant} €</strong>.</p>
+                <p>Référence à retrouver sur ton relevé : <strong>${ref}</strong></p>
+                <ul>${lignes}</ul>
+                <p style="color:#5a6b7a">Vérifie ton compte bancaire, puis passe la réservation en « Payé » dans SkiPro.</p>
+                <p style="margin-top:20px"><a href="https://www.skipro-app.com" style="background:#2f7fb8;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Ouvrir SkiPro</a></p>`)
+            });
+          }
         }
         return res.status(200).json({ ok: true, updated: touched });
       }

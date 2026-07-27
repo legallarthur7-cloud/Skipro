@@ -628,7 +628,7 @@ const DEFAULT_SETTINGS = {
   nom: 'Moniteur ESF', email: 'contact@exemple.com', devise: 'EUR', langue: 'Français',
   fuseauHoraire: 'Europe/Paris',
   adresse: '', telephone: '', siret: '', profession: 'Moniteur de ski indépendant',
-  iban: '', bic: '', banque: '', lienPaiement: '', slug: '',
+  iban: '', bic: '', banque: '', lienPaiement: '', acomptePct: 30, slug: '',
   matinDebut: '09:00', matinFin: '12:30', apresMidiDebut: '13:30', apresMidiFin: '17:00',
   tarifSkiHaute: 75, tarifSkiBasse: 55, tarifSnowboardHaute: 80, tarifSnowboardBasse: 60,
   tarifDemiJourneeHaute: 210, tarifDemiJourneeBasse: 150, tarifJourneeHaute: 370, tarifJourneeBasse: 270,
@@ -2191,6 +2191,14 @@ function ParametresView({ settings, onSave, C, subscribed }) {
           {field('Lien de paiement (optionnel)', <input style={inputStyle} value={form.lienPaiement || ''} onChange={set('lienPaiement')} placeholder="https://revolut.me/... ou https://paypal.me/..." />)}
           <div style={{ fontSize: 11.5, color: C.inkSoft, marginTop: 6, lineHeight: 1.5 }}>
             Ton lien Revolut, PayPal ou Lydia. Il s'affichera à tes clients à la fin de leur réservation, à côté de tes coordonnées bancaires, pour qu'ils puissent payer immédiatement.
+          </div>
+        </div>
+        {/* Acompte proposé aux clients qui règlent en espèces le jour du cours : ils peuvent
+            sécuriser leur réservation en versant ce pourcentage à l'avance. 30 % est l'usage courant. */}
+        <div style={{ marginTop: 14 }}>
+          {field("Acompte demandé pour un paiement en espèces (%)", <input type="number" min="0" max="100" style={inputStyle} value={form.acomptePct ?? 30} onChange={set('acomptePct')} />)}
+          <div style={{ fontSize: 11.5, color: C.inkSoft, marginTop: 6, lineHeight: 1.5 }}>
+            Un client qui choisit « Espèces » se verra proposer de verser cet acompte en ligne pour bloquer son créneau, le solde étant réglé sur place. Mets 0 pour ne rien demander.
           </div>
         </div>
         </>

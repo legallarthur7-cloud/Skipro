@@ -172,6 +172,10 @@ const T = {
     transferThanks: 'Merci ! Le moniteur a été informé et validera dès réception sur son compte.',
     copied: 'Copié',
     payNow: 'Payer maintenant',
+    depositTitle: 'Verser un acompte (optionnel)',
+    depositIntro: (pct, ac, solde) => `Tu peux bloquer ton créneau en versant un acompte de ${pct} % (${ac}). Le solde de ${solde} sera réglé en espèces le jour du cours.`,
+    depositPay: (ac) => `Verser l'acompte de ${ac}`,
+    depositOptional: "Tu n'es pas obligé de verser cet acompte : le moniteur te recontactera dans tous les cas.",
     qrHint: "Scanne ce QR code avec ton application bancaire : le virement sera pré-rempli."
   },
   en: {
@@ -212,6 +216,10 @@ const T = {
     transferThanks: 'Thank you! The instructor has been notified and will confirm once received.',
     copied: 'Copied',
     payNow: 'Pay now',
+    depositTitle: 'Pay a deposit (optional)',
+    depositIntro: (pct, ac, solde) => `You can secure your slot with a ${pct}% deposit (${ac}). The remaining ${solde} will be paid in cash on the day.`,
+    depositPay: (ac) => `Pay the ${ac} deposit`,
+    depositOptional: 'This deposit is optional: the instructor will get back to you either way.',
     qrHint: 'Scan this QR code with your banking app: the transfer will be pre-filled.'
   },
   es: {
@@ -252,6 +260,10 @@ const T = {
     transferThanks: '¡Gracias! El monitor ha sido informado y lo validará al recibirlo.',
     copied: 'Copiado',
     payNow: 'Pagar ahora',
+    depositTitle: 'Pagar un depósito (opcional)',
+    depositIntro: (pct, ac, solde) => `Puedes asegurar tu plaza con un depósito del ${pct} % (${ac}). El resto, ${solde}, se pagará en efectivo el día de la clase.`,
+    depositPay: (ac) => `Pagar el depósito de ${ac}`,
+    depositOptional: 'Este depósito es opcional: el monitor te contactará igualmente.',
     qrHint: 'Escanea este código QR con tu app bancaria: la transferencia se rellenará sola.'
   },
   de: {
@@ -292,6 +304,10 @@ const T = {
     transferThanks: 'Danke! Der Lehrer wurde informiert und bestätigt nach Zahlungseingang.',
     copied: 'Kopiert',
     payNow: 'Jetzt bezahlen',
+    depositTitle: 'Anzahlung leisten (optional)',
+    depositIntro: (pct, ac, solde) => `Du kannst deinen Termin mit einer Anzahlung von ${pct} % (${ac}) sichern. Der Restbetrag von ${solde} wird am Kurstag bar bezahlt.`,
+    depositPay: (ac) => `Anzahlung von ${ac} leisten`,
+    depositOptional: 'Die Anzahlung ist freiwillig: der Lehrer meldet sich in jedem Fall bei dir.',
     qrHint: 'Scanne diesen QR-Code mit deiner Banking-App: die Überweisung wird vorausgefüllt.'
   },
   it: {
@@ -332,6 +348,10 @@ const T = {
     transferThanks: 'Grazie! Il maestro è stato informato e confermerà alla ricezione.',
     copied: 'Copiato',
     payNow: 'Paga ora',
+    depositTitle: 'Versare un acconto (facoltativo)',
+    depositIntro: (pct, ac, solde) => `Puoi bloccare il tuo posto versando un acconto del ${pct} % (${ac}). Il saldo di ${solde} sarà pagato in contanti il giorno della lezione.`,
+    depositPay: (ac) => `Versa l'acconto di ${ac}`,
+    depositOptional: "L'acconto è facoltativo: il maestro ti ricontatterà in ogni caso.",
     qrHint: 'Scansiona questo codice QR con la tua app bancaria: il bonifico sarà precompilato.'
   },
   pt: {
@@ -372,6 +392,10 @@ const T = {
     transferThanks: 'Obrigado! O monitor foi informado e irá validar após a receção.',
     copied: 'Copiado',
     payNow: 'Pagar agora',
+    depositTitle: 'Pagar um sinal (opcional)',
+    depositIntro: (pct, ac, solde) => `Podes garantir o teu horário pagando um sinal de ${pct} % (${ac}). O restante de ${solde} será pago em dinheiro no dia da aula.`,
+    depositPay: (ac) => `Pagar o sinal de ${ac}`,
+    depositOptional: 'O sinal é opcional: o monitor entrará em contacto de qualquer forma.',
     qrHint: 'Digitaliza este código QR com a tua app bancária: a transferência será preenchida.'
   }
 };
@@ -706,6 +730,34 @@ export default function BookingPage({ slug }) {
 
             {/* Paiement par virement : coordonnées bancaires du moniteur + déclaration du virement.
                 Aucun paiement n'est traité par SkiPro — le client vire directement au moniteur. */}
+            {/* Paiement en espèces : on propose de verser un acompte en ligne pour bloquer le
+                créneau, le solde étant réglé sur place le jour du cours. Le pourcentage est
+                défini par le moniteur dans ses Paramètres (0 = pas d'acompte demandé). */}
+            {form.modePaiement === 'Espèces' && Number(settings.acomptePct) > 0 && (settings.lienPaiement || settings.iban) && (() => {
+              const pct = Number(settings.acomptePct);
+              const acompte = Math.ceil(sentTotal * pct / 100);
+              const ref = `SKIPRO-${sentGroupId || ''}`;
+              return (
+                <div style={{ marginTop: 22, textAlign: 'left', background: COLORS.snow, border: `1px solid ${COLORS.iceLine}`, borderRadius: 12, padding: 16 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.navy, marginBottom: 8 }}>{t.depositTitle}</div>
+                  <p style={{ fontSize: 13, color: COLORS.inkSoft, lineHeight: 1.6, marginBottom: 12 }}>{t.depositIntro(pct, fmtEUR(acompte, settings.devise), fmtEUR(sentTotal - acompte, settings.devise))}</p>
+                  {settings.lienPaiement && (
+                    <a href={settings.lienPaiement} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'block', textAlign: 'center', background: COLORS.glacier, color: '#fff', borderRadius: 9, padding: '11px', fontSize: 13.5, fontWeight: 600, textDecoration: 'none', marginBottom: 12 }}>
+                      {t.depositPay(fmtEUR(acompte, settings.devise))}
+                    </a>
+                  )}
+                  {settings.iban && (!settings.devise || settings.devise === 'EUR') && (
+                    <div style={{ background: '#fff', border: `1px solid ${COLORS.iceLine}`, borderRadius: 10, padding: 12 }}>
+                      <SepaQrCode payload={buildSepaPayload({ nom: settings.nom, iban: settings.iban, bic: settings.bic, montant: acompte, reference: ref })} size={160} />
+                      <p style={{ fontSize: 11.5, color: COLORS.inkSoft, textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>{t.qrHint}</p>
+                    </div>
+                  )}
+                  <p style={{ fontSize: 11.5, color: COLORS.inkSoft, lineHeight: 1.5, marginTop: 10 }}>{t.depositOptional}</p>
+                </div>
+              );
+            })()}
+
             {form.modePaiement === 'Virement' && (
               <div style={{ marginTop: 22, textAlign: 'left', background: COLORS.snow, border: `1px solid ${COLORS.iceLine}`, borderRadius: 12, padding: 16 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.navy, marginBottom: 8 }}>{t.transferTitle}</div>
