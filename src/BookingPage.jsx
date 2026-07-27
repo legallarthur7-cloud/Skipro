@@ -172,10 +172,11 @@ const T = {
     transferThanks: 'Merci ! Le moniteur a été informé et validera dès réception sur son compte.',
     copied: 'Copié',
     payNow: 'Payer maintenant',
-    depositTitle: 'Verser un acompte (optionnel)',
-    depositIntro: (pct, ac, solde) => `Tu peux bloquer ton créneau en versant un acompte de ${pct} % (${ac}). Le solde de ${solde} sera réglé en espèces le jour du cours.`,
+    depositTitle: 'Acompte à verser',
+    depositIntro: (pct, ac, solde) => `Pour valider ta réservation, un acompte de ${pct} % (${ac}) est demandé. Le solde de ${solde} sera réglé en espèces le jour du cours.`,
     depositPay: (ac) => `Verser l'acompte de ${ac}`,
-    depositOptional: "Tu n'es pas obligé de verser cet acompte : le moniteur te recontactera dans tous les cas.",
+    depositRequired: "Ta réservation sera confirmée dès réception de l'acompte par le moniteur.",
+    depositDone: "J'ai versé l'acompte",
     qrHint: "Scanne ce QR code avec ton application bancaire : le virement sera pré-rempli."
   },
   en: {
@@ -216,10 +217,11 @@ const T = {
     transferThanks: 'Thank you! The instructor has been notified and will confirm once received.',
     copied: 'Copied',
     payNow: 'Pay now',
-    depositTitle: 'Pay a deposit (optional)',
-    depositIntro: (pct, ac, solde) => `You can secure your slot with a ${pct}% deposit (${ac}). The remaining ${solde} will be paid in cash on the day.`,
+    depositTitle: 'Deposit to pay',
+    depositIntro: (pct, ac, solde) => `A ${pct}% deposit (${ac}) is required to validate your booking. The remaining ${solde} will be paid in cash on the day.`,
     depositPay: (ac) => `Pay the ${ac} deposit`,
-    depositOptional: 'This deposit is optional: the instructor will get back to you either way.',
+    depositRequired: 'Your booking will be confirmed once the instructor receives the deposit.',
+    depositDone: 'I have paid the deposit',
     qrHint: 'Scan this QR code with your banking app: the transfer will be pre-filled.'
   },
   es: {
@@ -260,10 +262,11 @@ const T = {
     transferThanks: '¡Gracias! El monitor ha sido informado y lo validará al recibirlo.',
     copied: 'Copiado',
     payNow: 'Pagar ahora',
-    depositTitle: 'Pagar un depósito (opcional)',
-    depositIntro: (pct, ac, solde) => `Puedes asegurar tu plaza con un depósito del ${pct} % (${ac}). El resto, ${solde}, se pagará en efectivo el día de la clase.`,
+    depositTitle: 'Depósito a pagar',
+    depositIntro: (pct, ac, solde) => `Para validar tu reserva se pide un depósito del ${pct} % (${ac}). El resto, ${solde}, se pagará en efectivo el día de la clase.`,
     depositPay: (ac) => `Pagar el depósito de ${ac}`,
-    depositOptional: 'Este depósito es opcional: el monitor te contactará igualmente.',
+    depositRequired: 'Tu reserva se confirmará cuando el monitor reciba el depósito.',
+    depositDone: 'He pagado el depósito',
     qrHint: 'Escanea este código QR con tu app bancaria: la transferencia se rellenará sola.'
   },
   de: {
@@ -304,10 +307,11 @@ const T = {
     transferThanks: 'Danke! Der Lehrer wurde informiert und bestätigt nach Zahlungseingang.',
     copied: 'Kopiert',
     payNow: 'Jetzt bezahlen',
-    depositTitle: 'Anzahlung leisten (optional)',
-    depositIntro: (pct, ac, solde) => `Du kannst deinen Termin mit einer Anzahlung von ${pct} % (${ac}) sichern. Der Restbetrag von ${solde} wird am Kurstag bar bezahlt.`,
+    depositTitle: 'Zu leistende Anzahlung',
+    depositIntro: (pct, ac, solde) => `Zur Bestätigung deiner Buchung wird eine Anzahlung von ${pct} % (${ac}) verlangt. Der Restbetrag von ${solde} wird am Kurstag bar bezahlt.`,
     depositPay: (ac) => `Anzahlung von ${ac} leisten`,
-    depositOptional: 'Die Anzahlung ist freiwillig: der Lehrer meldet sich in jedem Fall bei dir.',
+    depositRequired: 'Deine Buchung wird bestätigt, sobald der Lehrer die Anzahlung erhalten hat.',
+    depositDone: 'Ich habe die Anzahlung geleistet',
     qrHint: 'Scanne diesen QR-Code mit deiner Banking-App: die Überweisung wird vorausgefüllt.'
   },
   it: {
@@ -348,10 +352,11 @@ const T = {
     transferThanks: 'Grazie! Il maestro è stato informato e confermerà alla ricezione.',
     copied: 'Copiato',
     payNow: 'Paga ora',
-    depositTitle: 'Versare un acconto (facoltativo)',
-    depositIntro: (pct, ac, solde) => `Puoi bloccare il tuo posto versando un acconto del ${pct} % (${ac}). Il saldo di ${solde} sarà pagato in contanti il giorno della lezione.`,
+    depositTitle: 'Acconto da versare',
+    depositIntro: (pct, ac, solde) => `Per confermare la prenotazione è richiesto un acconto del ${pct} % (${ac}). Il saldo di ${solde} sarà pagato in contanti il giorno della lezione.`,
     depositPay: (ac) => `Versa l'acconto di ${ac}`,
-    depositOptional: "L'acconto è facoltativo: il maestro ti ricontatterà in ogni caso.",
+    depositRequired: "La prenotazione sarà confermata alla ricezione dell'acconto da parte del maestro.",
+    depositDone: "Ho versato l'acconto",
     qrHint: 'Scansiona questo codice QR con la tua app bancaria: il bonifico sarà precompilato.'
   },
   pt: {
@@ -392,10 +397,11 @@ const T = {
     transferThanks: 'Obrigado! O monitor foi informado e irá validar após a receção.',
     copied: 'Copiado',
     payNow: 'Pagar agora',
-    depositTitle: 'Pagar um sinal (opcional)',
-    depositIntro: (pct, ac, solde) => `Podes garantir o teu horário pagando um sinal de ${pct} % (${ac}). O restante de ${solde} será pago em dinheiro no dia da aula.`,
+    depositTitle: 'Sinal a pagar',
+    depositIntro: (pct, ac, solde) => `Para validar a tua reserva é pedido um sinal de ${pct} % (${ac}). O restante de ${solde} será pago em dinheiro no dia da aula.`,
     depositPay: (ac) => `Pagar o sinal de ${ac}`,
-    depositOptional: 'O sinal é opcional: o monitor entrará em contacto de qualquer forma.',
+    depositRequired: 'A tua reserva será confirmada assim que o monitor receber o sinal.',
+    depositDone: 'Paguei o sinal',
     qrHint: 'Digitaliza este código QR com a tua app bancária: a transferência será preenchida.'
   }
 };
@@ -753,7 +759,23 @@ export default function BookingPage({ slug }) {
                       <p style={{ fontSize: 11.5, color: COLORS.inkSoft, textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>{t.qrHint}</p>
                     </div>
                   )}
-                  <p style={{ fontSize: 11.5, color: COLORS.inkSoft, lineHeight: 1.5, marginTop: 10 }}>{t.depositOptional}</p>
+                  {/* Le client déclare avoir versé son acompte : même mécanisme que pour le
+                      virement du solde (statut "Virement annoncé" côté moniteur, qui vérifie
+                      son compte puis bascule en "Acompte reçu"). */}
+                  {transferState === 'done' ? (
+                    <p style={{ fontSize: 13, color: COLORS.green, fontWeight: 600, lineHeight: 1.6, marginTop: 12 }}>{t.transferThanks}</p>
+                  ) : (
+                    <button type="button" disabled={transferState === 'sending' || !sentGroupId}
+                      onClick={async () => {
+                        setTransferState('sending');
+                        try { await declareTransfer(slug, sentGroupId); setTransferState('done'); }
+                        catch (_) { setTransferState('idle'); }
+                      }}
+                      style={{ marginTop: 12, width: '100%', background: COLORS.green, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 13.5, fontWeight: 600, cursor: transferState === 'sending' ? 'default' : 'pointer', opacity: transferState === 'sending' ? 0.6 : 1 }}>
+                      {transferState === 'sending' ? t.transferSending : t.depositDone}
+                    </button>
+                  )}
+                  <p style={{ fontSize: 11.5, color: COLORS.inkSoft, lineHeight: 1.5, marginTop: 10 }}>{t.depositRequired}</p>
                 </div>
               );
             })()}

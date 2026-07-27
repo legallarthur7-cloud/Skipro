@@ -2198,7 +2198,7 @@ function ParametresView({ settings, onSave, C, subscribed }) {
         <div style={{ marginTop: 14 }}>
           {field("Acompte demandé pour un paiement en espèces (%)", <input type="number" min="0" max="100" style={inputStyle} value={form.acomptePct ?? 30} onChange={set('acomptePct')} />)}
           <div style={{ fontSize: 11.5, color: C.inkSoft, marginTop: 6, lineHeight: 1.5 }}>
-            Un client qui choisit « Espèces » se verra proposer de verser cet acompte en ligne pour bloquer son créneau, le solde étant réglé sur place. Mets 0 pour ne rien demander.
+            Un client qui choisit « Espèces » devra verser cet acompte en ligne pour que sa réservation soit validée ; le solde est réglé sur place le jour du cours. Mets 0 pour ne pas demander d'acompte.
           </div>
         </div>
         </>
