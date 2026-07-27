@@ -1341,8 +1341,12 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
     const origStart = timeToMinutes(rep.heureDebut) - DAY_START * 60;
     const origEnd = timeToMinutes(rep.heureFin) - DAY_START * 60;
     const scrollStart = scrollRef.current ? scrollRef.current.scrollLeft : 0;
+    // Largeur de colonne mesurée au moment précis du début du glisser (et non un état
+    // potentiellement périmé) pour que la conversion pixels -> jours soit toujours juste.
+    const rect = gridRef.current ? gridRef.current.getBoundingClientRect() : null;
+    const liveColWidth = rect ? Math.max(1, (rect.width - 52) / 7) : colWidth;
     if (e.touches) e.preventDefault();
-    setDrag({ kind: 'block', span, mode, startY: getClientY(e), startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0, scrollStart });
+    setDrag({ kind: 'block', span, mode, startY: getClientY(e), startX: getClientX(e), origStart, origEnd, deltaMin: 0, dayDelta: 0, scrollStart, colWidth: liveColWidth });
   };
   useEffect(() => {
     if (!drag) return;
@@ -1367,12 +1371,12 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
           if (d.mode === 'move-days') {
             return {
               ...d,
-              dayDelta: Math.round((getClientX(e) - d.startX + scrollOffset) / colWidth),
+              dayDelta: Math.round((getClientX(e) - d.startX + scrollOffset) / (d.colWidth || colWidth)),
               deltaMin: Math.round(((getClientY(e) - d.startY) / ROW_HEIGHT) * 60 / 30) * 30
             };
           }
           if (d.mode === 'extend-left' || d.mode === 'extend-right') {
-            return { ...d, dayDelta: Math.round((getClientX(e) - d.startX + scrollOffset) / colWidth) };
+            return { ...d, dayDelta: Math.round((getClientX(e) - d.startX + scrollOffset) / (d.colWidth || colWidth)) };
           }
           return { ...d, deltaMin: Math.round(((getClientY(e) - d.startY) / ROW_HEIGHT) * 60 / 30) * 30 };
         }
@@ -1606,8 +1610,13 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
                 if (isDragging && drag.mode === 'move-days') { minIdx = Math.max(0, Math.min(6, minIdx + dDay)); maxIdx = Math.max(0, Math.min(6, maxIdx + dDay)); }
                 else if (isDragging && drag.mode === 'extend-right') maxIdx = Math.max(minIdx, Math.min(6, maxIdx + dDay));
                 else if (isDragging && drag.mode === 'extend-left') minIdx = Math.min(maxIdx, Math.max(0, minIdx + dDay));
-                const left = 52 + minIdx * colWidth + 4;
-                const width = Math.max(colWidth - 8, (maxIdx - minIdx + 1) * colWidth - 8);
+                // Positionnement en pourcentages CSS (calc) plutôt qu'en pixels mesurés en JS :
+                // la mesure JS peut être décalée sur mobile (scroll horizontal, rendu différé),
+                // ce qui faisait chevaucher le bloc sur les colonnes voisines. calc() colle
+                // toujours exactement à la largeur réelle des colonnes.
+                const nDays = maxIdx - minIdx + 1;
+                const left = `calc(52px + ${minIdx} * ((100% - 52px) / 7) + 4px)`;
+                const width = `calc(${nDays} * ((100% - 52px) / 7) - 8px)`;
                 return (
                   <div key={span.spanKey}
                     onMouseDown={startBlockDrag(span, 'move-days')}
