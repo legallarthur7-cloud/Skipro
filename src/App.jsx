@@ -71,6 +71,73 @@ const PAIEMENT_STATUTS = ['Non payé', 'Virement annoncé', 'Acompte reçu', 'Pa
 // "Carte bancaire" a été retiré : aucun encaissement par carte n'est prévu par l'application.
 const MODES_PAIEMENT = ['Non renseigné', 'Espèces', 'Virement'];
 const LANGUES = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
+
+// Indicatifs téléphoniques internationaux : la clientèle des moniteurs est majoritairement
+// étrangère, un numéro sans indicatif est souvent inutilisable. France en tête, puis les pays
+// d'où viennent le plus de skieurs, puis le reste par ordre alphabétique.
+const INDICATIFS = [
+  { dial: '+33', nom: 'France', drapeau: '🇫🇷' },
+  { dial: '+32', nom: 'Belgique', drapeau: '🇧🇪' },
+  { dial: '+41', nom: 'Suisse', drapeau: '🇨🇭' },
+  { dial: '+39', nom: 'Italie', drapeau: '🇮🇹' },
+  { dial: '+49', nom: 'Allemagne', drapeau: '🇩🇪' },
+  { dial: '+44', nom: 'Royaume-Uni', drapeau: '🇬🇧' },
+  { dial: '+34', nom: 'Espagne', drapeau: '🇪🇸' },
+  { dial: '+31', nom: 'Pays-Bas', drapeau: '🇳🇱' },
+  { dial: '+1', nom: 'États-Unis / Canada', drapeau: '🇺🇸' },
+  { dial: '+43', nom: 'Autriche', drapeau: '🇦🇹' },
+  { dial: '+27', nom: 'Afrique du Sud', drapeau: '🇿🇦' },
+  { dial: '+213', nom: 'Algérie', drapeau: '🇩🇿' },
+  { dial: '+54', nom: 'Argentine', drapeau: '🇦🇷' },
+  { dial: '+61', nom: 'Australie', drapeau: '🇦🇺' },
+  { dial: '+55', nom: 'Brésil', drapeau: '🇧🇷' },
+  { dial: '+359', nom: 'Bulgarie', drapeau: '🇧🇬' },
+  { dial: '+56', nom: 'Chili', drapeau: '🇨🇱' },
+  { dial: '+86', nom: 'Chine', drapeau: '🇨🇳' },
+  { dial: '+82', nom: 'Corée du Sud', drapeau: '🇰🇷' },
+  { dial: '+385', nom: 'Croatie', drapeau: '🇭🇷' },
+  { dial: '+45', nom: 'Danemark', drapeau: '🇩🇰' },
+  { dial: '+971', nom: 'Émirats arabes unis', drapeau: '🇦🇪' },
+  { dial: '+372', nom: 'Estonie', drapeau: '🇪🇪' },
+  { dial: '+358', nom: 'Finlande', drapeau: '🇫🇮' },
+  { dial: '+30', nom: 'Grèce', drapeau: '🇬🇷' },
+  { dial: '+36', nom: 'Hongrie', drapeau: '🇭🇺' },
+  { dial: '+91', nom: 'Inde', drapeau: '🇮🇳' },
+  { dial: '+353', nom: 'Irlande', drapeau: '🇮🇪' },
+  { dial: '+354', nom: 'Islande', drapeau: '🇮🇸' },
+  { dial: '+972', nom: 'Israël', drapeau: '🇮🇱' },
+  { dial: '+81', nom: 'Japon', drapeau: '🇯🇵' },
+  { dial: '+371', nom: 'Lettonie', drapeau: '🇱🇻' },
+  { dial: '+370', nom: 'Lituanie', drapeau: '🇱🇹' },
+  { dial: '+352', nom: 'Luxembourg', drapeau: '🇱🇺' },
+  { dial: '+212', nom: 'Maroc', drapeau: '🇲🇦' },
+  { dial: '+52', nom: 'Mexique', drapeau: '🇲🇽' },
+  { dial: '+47', nom: 'Norvège', drapeau: '🇳🇴' },
+  { dial: '+64', nom: 'Nouvelle-Zélande', drapeau: '🇳🇿' },
+  { dial: '+48', nom: 'Pologne', drapeau: '🇵🇱' },
+  { dial: '+351', nom: 'Portugal', drapeau: '🇵🇹' },
+  { dial: '+420', nom: 'République tchèque', drapeau: '🇨🇿' },
+  { dial: '+40', nom: 'Roumanie', drapeau: '🇷🇴' },
+  { dial: '+7', nom: 'Russie / Kazakhstan', drapeau: '🇷🇺' },
+  { dial: '+381', nom: 'Serbie', drapeau: '🇷🇸' },
+  { dial: '+65', nom: 'Singapour', drapeau: '🇸🇬' },
+  { dial: '+421', nom: 'Slovaquie', drapeau: '🇸🇰' },
+  { dial: '+386', nom: 'Slovénie', drapeau: '🇸🇮' },
+  { dial: '+46', nom: 'Suède', drapeau: '🇸🇪' },
+  { dial: '+66', nom: 'Thaïlande', drapeau: '🇹🇭' },
+  { dial: '+216', nom: 'Tunisie', drapeau: '🇹🇳' },
+  { dial: '+90', nom: 'Turquie', drapeau: '🇹🇷' },
+  { dial: '+380', nom: 'Ukraine', drapeau: '🇺🇦' }
+];
+// Sépare un numéro déjà enregistré en (indicatif, reste). Les numéros saisis avant l'ajout de
+// l'indicatif (ou copiés d'ailleurs) sont traités comme français, sans jamais être modifiés
+// tant que l'utilisateur n'y touche pas.
+const splitPhone = (tel) => {
+  const t = String(tel || '').trim();
+  const found = INDICATIFS.map(i => i.dial).sort((a, b) => b.length - a.length).find(d => t.startsWith(d));
+  return found ? { dial: found, rest: t.slice(found.length).trim() } : { dial: '+33', rest: t };
+};
+
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const ENGAGEMENTS = ['Heure', 'Demi-journée', 'Journée'];
 const UI_TRANSLATIONS = {
@@ -972,7 +1039,19 @@ function ReservationModal({ initial, onSave, onDelete, onClose, C, settings, res
           <div className="form-grid-2">
             {field(tUI('fPrenom', langue), <input style={inputStyle} value={form.prenom} onChange={set('prenom')} />)}
             {field(tUI('fNom', langue), <input style={inputStyle} value={form.nom} onChange={set('nom')} />)}
-            {field(tUI('fTelephone', langue), <input style={inputStyle} value={form.telephone} onChange={set('telephone')} />)}
+            {field(tUI('fTelephone', langue), (() => {
+              const { dial, rest } = splitPhone(form.telephone);
+              return (
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <select style={{ ...inputStyle, width: 'auto', flexShrink: 0, paddingRight: 4 }} value={dial}
+                    onChange={e => setForm(f => ({ ...f, telephone: `${e.target.value} ${splitPhone(f.telephone).rest}`.trim() }))}>
+                    {INDICATIFS.map(i => <option key={i.dial + i.nom} value={i.dial}>{i.drapeau} {i.dial}</option>)}
+                  </select>
+                  <input type="tel" style={inputStyle} value={rest} placeholder="6 12 34 56 78"
+                    onChange={e => setForm(f => ({ ...f, telephone: `${splitPhone(f.telephone).dial} ${e.target.value.replace(/^0+/, '')}`.trim() }))} />
+                </div>
+              );
+            })())}
             {field(tUI('fEmail', langue), <input style={inputStyle} value={form.email} onChange={set('email')} />)}
             {field(tUI('fNationalite', langue), <input style={inputStyle} value={form.nationalite} onChange={set('nationalite')} />)}
             {field(tUI('fLangueParlee', langue), <select style={inputStyle} value={form.langue} onChange={set('langue')}>{LANGUES.map(l => <option key={l}>{l}</option>)}</select>)}
