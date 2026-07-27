@@ -29,7 +29,9 @@ const disciplineColor = (d) => d === 'Ski' ? ACCENTS.blue : ACCENTS.green;
 const statutColor = (s) => s === 'Confirmée' ? ACCENTS.green : s === 'En attente' ? ACCENTS.amber : ACCENTS.red;
 // Le statut de paiement est totalement indépendant du statut de la réservation (voir PAIEMENT_STATUTS) :
 // une réservation "En attente" peut être "Non payé", une "Confirmée" peut être "Acompte reçu", etc.
-const paiementColor = (p) => p === 'Payé' ? ACCENTS.green : p === 'Acompte reçu' ? ACCENTS.amber : '#5A6B7A';
+// "Virement annoncé" = le client a déclaré avoir fait le virement depuis le lien public ;
+// le moniteur doit encore le vérifier sur son compte avant de passer la réservation en "Payé".
+const paiementColor = (p) => p === 'Payé' ? ACCENTS.green : p === 'Acompte reçu' ? ACCENTS.amber : p === 'Virement annoncé' ? ACCENTS.glacier : '#5A6B7A';
 
 const STATIONS_BY_MASSIF = {
   'Alpes du Nord': [
@@ -63,7 +65,7 @@ const STATIONS = Object.values(STATIONS_BY_MASSIF).flat();
 const NIVEAUX = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
 const DISCIPLINES = ['Ski', 'Snowboard'];
 const STATUTS = ['Confirmée', 'En attente', 'Annulée'];
-const PAIEMENT_STATUTS = ['Non payé', 'Acompte reçu', 'Payé'];
+const PAIEMENT_STATUTS = ['Non payé', 'Virement annoncé', 'Acompte reçu', 'Payé'];
 const MODES_PAIEMENT = ['Non renseigné', 'Espèces', 'Carte bancaire', 'Virement'];
 const LANGUES = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
@@ -512,7 +514,8 @@ const VALUE_TRANSLATIONS = {
   paiementStatut: {
     'Payé': { Français: 'Payé', Anglais: 'Paid', Espagnol: 'Pagado', Italien: 'Pagato', Portugais: 'Pago' },
     'Non payé': { Français: 'Non payé', Anglais: 'Unpaid', Espagnol: 'No pagado', Italien: 'Non pagato', Portugais: 'Não pago' },
-    'Acompte reçu': { Français: 'Acompte reçu', Anglais: 'Deposit received', Espagnol: 'Depósito recibido', Italien: 'Acconto ricevuto', Portugais: 'Sinal recebido' }
+    'Acompte reçu': { Français: 'Acompte reçu', Anglais: 'Deposit received', Espagnol: 'Depósito recibido', Italien: 'Acconto ricevuto', Portugais: 'Sinal recebido' },
+    'Virement annoncé': { Français: 'Virement annoncé', Anglais: 'Transfer announced', Espagnol: 'Transferencia anunciada', Italien: 'Bonifico annunciato', Portugais: 'Transferência anunciada' }
   }
 };
 function tVal(category, value, langue) {

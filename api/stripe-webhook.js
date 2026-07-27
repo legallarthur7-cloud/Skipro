@@ -8,6 +8,8 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+const RES_KEY = 'skipro-reservations-v1';
+
 export const config = { api: { bodyParser: false } };
 
 function buffer(readable) {
@@ -61,15 +63,42 @@ async function isGuardAlreadyUsed(guardKey) {
   return !!(data && data.length > 0);
 }
 
-async function getKvValue(userId, key) {
+// Confirme d'un coup tous les cours d'une réservation multi-cours (même groupId) une fois
+// l'acompte payé côté client. Voir create-deposit-session.js pour la création de la session
+// et public-booking.js pour la structure des réservations (un enregistrement par cours, groupId partagé).
+async function confirmReservationDeposit(session) {
+  const { groupId, userId } = session.metadata || {};
+  if (!userId || !groupId) {
+    console.error('Webhook acompte réservation : groupId ou userId manquant dans les metadata', session.metadata);
+    return;
+  }
+
   const { data } = await supabaseAdmin
     .from('kv_store')
     .select('value')
     .eq('user_id', userId)
-    .eq('key', key)
+    .eq('key', RES_KEY)
     .eq('shared', false)
     .limit(1);
-  return data && data.length > 0 ? data[0].value : null;
+  const raw = data && data.length > 0 ? data[0].value : null;
+  if (!raw) { console.error('Aucune réservation trouvée pour', userId); return; }
+
+  const reservations = JSON.parse(raw);
+  const updated = reservations.map(r =>
+    String(r.groupId) === String(groupId)
+      // "Acompte reçu" et non "Acompte payé" : seule cette valeur fait partie des statuts de
+      // paiement reconnus par l'application (voir PAIEMENT_STATUTS dans App.jsx).
+      ? { ...r, statut: 'Confirmée', paiement: 'Acompte reçu' }
+      : r
+  );
+
+  await supabaseAdmin.from('kv_store').upsert({
+    user_id: userId,
+    key: RES_KEY,
+    value: JSON.stringify(updated),
+    shared: false,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id,key,shared' });
 }
 
 export default async function handler(req, res) {
@@ -91,28 +120,10 @@ export default async function handler(req, res) {
       case 'checkout.session.completed': {
         const session = event.data.object;
 
+        // Acompte de réservation (multi-cours) : rien à voir avec l'abonnement SkiPro,
+        // on traite ça séparément et on sort tout de suite.
         if (session.metadata?.type === 'reservation-deposit') {
-          const { slug, reservationId, userId: depositUserId } = session.metadata;
-          try {
-            const reservationsRaw = await getKvValue(depositUserId, 'skipro-reservations-v1');
-            const reservations = reservationsRaw ? JSON.parse(reservationsRaw) : [];
-            const idx = reservations.findIndex(r => String(r.id) === String(reservationId));
-            if (idx !== -1) {
-              reservations[idx].garantieStatut = 'Payé';
-              reservations[idx].stripePaymentIntentId = session.payment_intent;
-              await supabaseAdmin.from('kv_store').upsert({
-                user_id: depositUserId,
-                key: 'skipro-reservations-v1',
-                value: JSON.stringify(reservations),
-                shared: false,
-                updated_at: new Date().toISOString()
-              }, { onConflict: 'user_id,key,shared' });
-            } else {
-              console.error('Reservation introuvable pour acompte', slug, reservationId);
-            }
-          } catch (depositErr) {
-            console.error('Erreur mise a jour acompte reservation', depositErr);
-          }
+          await confirmReservationDeposit(session);
           break;
         }
 

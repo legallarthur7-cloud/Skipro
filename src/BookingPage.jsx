@@ -161,7 +161,16 @@ const T = {
     heureConflictMsg: 'Ce créneau chevauche une réservation déjà existante — merci de choisir un autre horaire.',
     heureOutsideHoursMsg: (start, end) => `En dehors des horaires habituels (${start}–${end}) — ta demande sera quand même envoyée, à valider par le moniteur.`,
     modePaiementLabel: 'Mode de paiement souhaité',
-    modesPaiement: { 'Non renseigné': 'Pas de préférence', 'Espèces': 'Espèces', 'Carte bancaire': 'Carte bancaire', 'Virement': 'Virement' }
+    modesPaiement: { 'Non renseigné': 'Pas de préférence', 'Espèces': 'Espèces', 'Carte bancaire': 'Carte bancaire', 'Virement': 'Virement' },
+    transferTitle: 'Régler par virement',
+    transferIntro: (nom) => `Voici les coordonnées bancaires de ${nom} pour effectuer ton virement :`,
+    transferRef: 'Référence à indiquer',
+    transferAmount: 'Montant',
+    transferNoIban: "Le moniteur n'a pas encore renseigné ses coordonnées bancaires — il te les communiquera directement.",
+    transferDone: "J'ai effectué le virement",
+    transferSending: 'Envoi…',
+    transferThanks: 'Merci ! Le moniteur a été informé et validera dès réception sur son compte.',
+    copied: 'Copié'
   },
   en: {
     title: 'Book a lesson', subtitle: (nom) => `Fill in this form and ${nom} will confirm your booking shortly.`,
@@ -190,7 +199,16 @@ const T = {
     heureConflictMsg: 'This time slot overlaps an existing booking — please choose another time.',
     heureOutsideHoursMsg: (start, end) => `Outside usual hours (${start}–${end}) — your request will still be sent for the instructor to approve.`,
     modePaiementLabel: 'Preferred payment method',
-    modesPaiement: { 'Non renseigné': 'No preference', 'Espèces': 'Cash', 'Carte bancaire': 'Card', 'Virement': 'Bank transfer' }
+    modesPaiement: { 'Non renseigné': 'No preference', 'Espèces': 'Cash', 'Carte bancaire': 'Card', 'Virement': 'Bank transfer' },
+    transferTitle: 'Pay by bank transfer',
+    transferIntro: (nom) => `Here are ${nom}'s bank details to make your transfer:`,
+    transferRef: 'Reference to include',
+    transferAmount: 'Amount',
+    transferNoIban: "The instructor hasn't provided bank details yet — they will send them to you directly.",
+    transferDone: 'I have made the transfer',
+    transferSending: 'Sending…',
+    transferThanks: 'Thank you! The instructor has been notified and will confirm once received.',
+    copied: 'Copied'
   },
   es: {
     title: 'Reservar una clase', subtitle: (nom) => `Rellena este formulario y ${nom} confirmará tu reserva enseguida.`,
@@ -219,7 +237,16 @@ const T = {
     heureConflictMsg: 'Este horario se solapa con una reserva existente — elige otro horario.',
     heureOutsideHoursMsg: (start, end) => `Fuera del horario habitual (${start}–${end}) — tu solicitud se enviará igualmente para que el monitor la valide.`,
     modePaiementLabel: 'Método de pago preferido',
-    modesPaiement: { 'Non renseigné': 'Sin preferencia', 'Espèces': 'Efectivo', 'Carte bancaire': 'Tarjeta', 'Virement': 'Transferencia' }
+    modesPaiement: { 'Non renseigné': 'Sin preferencia', 'Espèces': 'Efectivo', 'Carte bancaire': 'Tarjeta', 'Virement': 'Transferencia' },
+    transferTitle: 'Pagar por transferencia',
+    transferIntro: (nom) => `Estos son los datos bancarios de ${nom} para hacer tu transferencia:`,
+    transferRef: 'Referencia a indicar',
+    transferAmount: 'Importe',
+    transferNoIban: 'El monitor aún no ha indicado sus datos bancarios — te los comunicará directamente.',
+    transferDone: 'He hecho la transferencia',
+    transferSending: 'Enviando…',
+    transferThanks: '¡Gracias! El monitor ha sido informado y lo validará al recibirlo.',
+    copied: 'Copiado'
   },
   de: {
     title: 'Skikurs buchen', subtitle: (nom) => `Fülle dieses Formular aus, ${nom} bestätigt deine Buchung in Kürze.`,
@@ -248,7 +275,16 @@ const T = {
     heureConflictMsg: 'Diese Zeit überschneidet sich mit einer bestehenden Buchung — bitte wähle eine andere Zeit.',
     heureOutsideHoursMsg: (start, end) => `Außerhalb der üblichen Zeiten (${start}–${end}) — deine Anfrage wird trotzdem zur Bestätigung gesendet.`,
     modePaiementLabel: 'Bevorzugte Zahlungsart',
-    modesPaiement: { 'Non renseigné': 'Keine Präferenz', 'Espèces': 'Bar', 'Carte bancaire': 'Karte', 'Virement': 'Überweisung' }
+    modesPaiement: { 'Non renseigné': 'Keine Präferenz', 'Espèces': 'Bar', 'Carte bancaire': 'Karte', 'Virement': 'Überweisung' },
+    transferTitle: 'Per Überweisung bezahlen',
+    transferIntro: (nom) => `Hier sind die Bankdaten von ${nom} für deine Überweisung:`,
+    transferRef: 'Anzugebender Verwendungszweck',
+    transferAmount: 'Betrag',
+    transferNoIban: 'Der Lehrer hat noch keine Bankdaten hinterlegt — er teilt sie dir direkt mit.',
+    transferDone: 'Ich habe überwiesen',
+    transferSending: 'Senden…',
+    transferThanks: 'Danke! Der Lehrer wurde informiert und bestätigt nach Zahlungseingang.',
+    copied: 'Kopiert'
   },
   it: {
     title: 'Prenota una lezione', subtitle: (nom) => `Compila questo modulo, ${nom} confermerà la tua prenotazione a breve.`,
@@ -277,7 +313,16 @@ const T = {
     heureConflictMsg: 'Questo orario si sovrappone a una prenotazione esistente — scegli un altro orario.',
     heureOutsideHoursMsg: (start, end) => `Fuori dagli orari abituali (${start}–${end}) — la tua richiesta verrà comunque inviata per l'approvazione del maestro.`,
     modePaiementLabel: 'Metodo di pagamento preferito',
-    modesPaiement: { 'Non renseigné': 'Nessuna preferenza', 'Espèces': 'Contanti', 'Carte bancaire': 'Carta', 'Virement': 'Bonifico' }
+    modesPaiement: { 'Non renseigné': 'Nessuna preferenza', 'Espèces': 'Contanti', 'Carte bancaire': 'Carta', 'Virement': 'Bonifico' },
+    transferTitle: 'Pagare con bonifico',
+    transferIntro: (nom) => `Ecco le coordinate bancarie di ${nom} per effettuare il bonifico:`,
+    transferRef: 'Causale da indicare',
+    transferAmount: 'Importo',
+    transferNoIban: 'Il maestro non ha ancora inserito le coordinate bancarie — te le comunicherà direttamente.',
+    transferDone: 'Ho effettuato il bonifico',
+    transferSending: 'Invio…',
+    transferThanks: 'Grazie! Il maestro è stato informato e confermerà alla ricezione.',
+    copied: 'Copiato'
   },
   pt: {
     title: 'Reservar uma aula', subtitle: (nom) => `Preenche este formulário e ${nom} confirmará a tua reserva em breve.`,
@@ -306,7 +351,16 @@ const T = {
     heureConflictMsg: 'Este horário sobrepõe-se a uma reserva já existente — escolhe outro horário.',
     heureOutsideHoursMsg: (start, end) => `Fora do horário habitual (${start}–${end}) — o teu pedido será enviado na mesma, para o monitor validar.`,
     modePaiementLabel: 'Método de pagamento preferido',
-    modesPaiement: { 'Non renseigné': 'Sem preferência', 'Espèces': 'Dinheiro', 'Carte bancaire': 'Cartão', 'Virement': 'Transferência' }
+    modesPaiement: { 'Non renseigné': 'Sem preferência', 'Espèces': 'Dinheiro', 'Carte bancaire': 'Cartão', 'Virement': 'Transferência' },
+    transferTitle: 'Pagar por transferência',
+    transferIntro: (nom) => `Aqui estão os dados bancários de ${nom} para fazeres a tua transferência:`,
+    transferRef: 'Referência a indicar',
+    transferAmount: 'Montante',
+    transferNoIban: 'O monitor ainda não indicou os seus dados bancários — irá comunicá-los diretamente.',
+    transferDone: 'Fiz a transferência',
+    transferSending: 'A enviar…',
+    transferThanks: 'Obrigado! O monitor foi informado e irá validar após a receção.',
+    copied: 'Copiado'
   }
 };
 
@@ -326,6 +380,19 @@ async function postPublicBooking(slug, cours) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
   return data; // { ok, groupId, ids }
+}
+
+// Le client déclare avoir effectué son virement : la réservation passe en "Virement annoncé"
+// côté moniteur, qui vérifiera son compte avant de la basculer en "Payé".
+async function declareTransfer(slug, groupId) {
+  const res = await fetch('/api/public-booking', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ slug, groupId, action: 'declare-transfer' })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+  return data;
 }
 
 function computePrix(cours, settings) {
@@ -356,6 +423,11 @@ export default function BookingPage({ slug }) {
   const [coursDraft, setCoursDraft] = useState(emptyCoursDraft);
   const [coursList, setCoursList] = useState([]);
   const [sent, setSent] = useState(false);
+  // Suivi du virement déclaré par le client sur l'écran de confirmation (voir declareTransfer).
+  const [sentGroupId, setSentGroupId] = useState(null);
+  const [sentTotal, setSentTotal] = useState(0);
+  const [transferState, setTransferState] = useState('idle'); // idle | sending | done
+  const [copied, setCopied] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [ready, setReady] = useState(false);
@@ -518,7 +590,12 @@ export default function BookingPage({ slug }) {
       prix: c.prix, modePaiement: form.modePaiement || 'Non renseigné', notes
     }));
     try {
-      await postPublicBooking(slug, coursPayload);
+      const result = await postPublicBooking(slug, coursPayload);
+      // Mémorisés pour l'écran de confirmation : identifiant du lot (pour déclarer le virement)
+      // et montant total (affiché dans les instructions de virement).
+      setSentGroupId(result && result.groupId);
+      setSentTotal(coursPayload.reduce((s, c) => s + (Number(c.prix) || 0), 0));
+      setTransferState('idle');
       setLoading(false);
       setSent(true);
     } catch (e) {
@@ -575,7 +652,51 @@ export default function BookingPage({ slug }) {
             </div>
             <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 21, fontWeight: 700, color: COLORS.navy, marginBottom: 10 }}>{t.successTitle}</h1>
             <p style={{ fontSize: 14.5, color: COLORS.inkSoft, lineHeight: 1.6 }}>{t.successBody(form.prenom, settings.nom)}</p>
-            <button onClick={() => { setForm(emptyForm); setCoursDraft(emptyCoursDraft); setCoursList([]); setSent(false); }} style={{ marginTop: 24, background: COLORS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t.newRequest}</button>
+
+            {/* Paiement par virement : coordonnées bancaires du moniteur + déclaration du virement.
+                Aucun paiement n'est traité par SkiPro — le client vire directement au moniteur. */}
+            {form.modePaiement === 'Virement' && (
+              <div style={{ marginTop: 22, textAlign: 'left', background: COLORS.snow, border: `1px solid ${COLORS.iceLine}`, borderRadius: 12, padding: 16 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.navy, marginBottom: 8 }}>{t.transferTitle}</div>
+                {settings.iban ? (
+                  <>
+                    <p style={{ fontSize: 13, color: COLORS.inkSoft, lineHeight: 1.6, marginBottom: 12 }}>{t.transferIntro(settings.nom)}</p>
+                    {[
+                      ['IBAN', settings.iban],
+                      ...(settings.bic ? [['BIC', settings.bic]] : []),
+                      ...(settings.banque ? [['Banque', settings.banque]] : []),
+                      [t.transferRef, `SKIPRO-${sentGroupId || ''}`],
+                      [t.transferAmount, fmtEUR(sentTotal, settings.devise)]
+                    ].map(([label, value]) => (
+                      <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '7px 0', borderTop: `1px solid ${COLORS.iceLine}` }}>
+                        <span style={{ fontSize: 12, color: COLORS.inkSoft, flexShrink: 0 }}>{label}</span>
+                        <button type="button" onClick={() => { try { navigator.clipboard.writeText(String(value)); setCopied(label); setTimeout(() => setCopied(''), 1500); } catch (_) { /* presse-papiers indisponible */ } }}
+                          style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.navy, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'right', wordBreak: 'break-all' }}>
+                          {copied === label ? t.copied : value}
+                        </button>
+                      </div>
+                    ))}
+                    {transferState === 'done' ? (
+                      <p style={{ fontSize: 13, color: COLORS.green, fontWeight: 600, lineHeight: 1.6, marginTop: 14 }}>{t.transferThanks}</p>
+                    ) : (
+                      <button type="button" disabled={transferState === 'sending' || !sentGroupId}
+                        onClick={async () => {
+                          setTransferState('sending');
+                          try { await declareTransfer(slug, sentGroupId); setTransferState('done'); }
+                          catch (_) { setTransferState('idle'); }
+                        }}
+                        style={{ marginTop: 14, width: '100%', background: COLORS.green, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 13.5, fontWeight: 600, cursor: transferState === 'sending' ? 'default' : 'pointer', opacity: transferState === 'sending' ? 0.6 : 1 }}>
+                        {transferState === 'sending' ? t.transferSending : t.transferDone}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p style={{ fontSize: 13, color: COLORS.inkSoft, lineHeight: 1.6 }}>{t.transferNoIban}</p>
+                )}
+              </div>
+            )}
+
+            <button onClick={() => { setForm(emptyForm); setCoursDraft(emptyCoursDraft); setCoursList([]); setSent(false); setSentGroupId(null); setTransferState('idle'); }} style={{ marginTop: 24, background: COLORS.glacier, color: '#fff', border: 'none', borderRadius: 9, padding: '11px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>{t.newRequest}</button>
           </div>
         </div>
       </div>

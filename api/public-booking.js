@@ -80,14 +80,49 @@ export default async function handler(req, res) {
         seasonMode: settings.seasonMode,
         zoneVacances: settings.zoneVacances,
         joursRepos: settings.joursRepos,
-        langue: settings.langue
+        langue: settings.langue,
+        // Coordonnées bancaires : affichées au client uniquement s'il choisit le paiement par
+        // virement, pour qu'il puisse effectuer le transfert directement vers le moniteur.
+        iban: settings.iban || '',
+        bic: settings.bic || '',
+        banque: settings.banque || ''
       };
 
       return res.status(200).json({ userId, settings: publicSettings, busySlots });
     }
 
     if (req.method === 'POST') {
-      const { slug, cours } = req.body;
+      const { slug, cours, action, groupId: declaredGroupId } = req.body;
+
+      // Le client signale qu'il a effectué son virement : on passe le statut de paiement de tous
+      // les cours du lot en "Virement annoncé". C'est purement déclaratif — le moniteur devra
+      // vérifier son compte bancaire puis basculer lui-même en "Payé" depuis l'application.
+      if (action === 'declare-transfer') {
+        if (!slug || !declaredGroupId) return res.status(400).json({ error: 'slug et groupId requis' });
+        const uid = await getUserIdForSlug(slug);
+        if (!uid) return res.status(404).json({ error: 'Moniteur introuvable' });
+        const raw = await getRow(uid, RES_KEY);
+        const list = raw ? JSON.parse(raw) : [];
+        let touched = 0;
+        const updated = list.map(r => {
+          if (String(r.groupId) !== String(declaredGroupId)) return r;
+          // On ne touche pas à une réservation déjà encaissée par le moniteur.
+          if (r.paiement === 'Payé' || r.paiement === 'Acompte reçu') return r;
+          touched++;
+          return { ...r, paiement: 'Virement annoncé' };
+        });
+        if (touched > 0) {
+          await supabaseAdmin.from('kv_store').upsert({
+            user_id: uid,
+            key: RES_KEY,
+            value: JSON.stringify(updated),
+            shared: false,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id,key,shared' });
+        }
+        return res.status(200).json({ ok: true, updated: touched });
+      }
+
       if (!slug || !Array.isArray(cours) || cours.length === 0) {
         return res.status(400).json({ error: 'slug et cours (tableau) requis' });
       }
