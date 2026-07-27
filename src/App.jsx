@@ -1517,7 +1517,7 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
   const renderDayColumn = (day) => {
     const key = toKey(day); const events = byDate(key); const isToday = key === toKey(new Date());
     return (
-      <div key={key} style={{ flex: 1, position: 'relative', borderLeft: `1px solid ${C.iceLine}` }}>
+      <div key={key} style={{ flex: '1 1 0', minWidth: 0, position: 'relative', borderLeft: `1px solid ${C.iceLine}` }}>
         {hours.map(h => <div key={h} onClick={() => onSlotClick(key, `${pad(h)}:00`)} style={{ height: ROW_HEIGHT, borderBottom: `1px solid ${C.iceLine}`, cursor: 'pointer' }} />)}
         {events.map(ev => {
           const isDragging = drag && drag.id === ev.id;
@@ -1552,6 +1552,48 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
                   </div>
                 </>
               )}
+            </div>
+          );
+        })}
+        {/* Blocs d'indisponibilité (vue Semaine) : rendus DANS leur colonne de départ, avec une
+            largeur en % de colonne (nDays * 100%) — l'alignement sur les colonnes est ainsi garanti
+            par le layout lui-même, sans aucun calcul de largeur en pixels (source des décalages
+            constatés sur mobile). */}
+        {view === 'week' && blockSpans.filter(span => weekDayKeys[span.minIdx] === key).map(span => {
+          const isDragging = drag && drag.kind === 'block' && drag.span.spanKey === span.spanKey;
+          const dMin = isDragging ? (drag.deltaMin || 0) : 0;
+          const dDay = isDragging ? (drag.dayDelta || 0) : 0;
+          const rep = span.entries[0];
+          let startM = timeToMinutes(rep.heureDebut) - DAY_START * 60, endM = timeToMinutes(rep.heureFin) - DAY_START * 60;
+          if (isDragging && drag.mode === 'move-days') { startM += dMin; endM += dMin; }
+          else if (isDragging && drag.mode === 'resize-bottom') endM = Math.max(startM + 30, endM + dMin);
+          else if (isDragging && drag.mode === 'resize-top') startM = Math.min(endM - 30, startM + dMin);
+          const sTop = (startM / 60) * ROW_HEIGHT, sHeight = Math.max(((endM - startM) / 60) * ROW_HEIGHT, 24);
+          let minIdx = span.minIdx, maxIdx = span.maxIdx;
+          if (isDragging && drag.mode === 'move-days') { minIdx = Math.max(0, Math.min(6, minIdx + dDay)); maxIdx = Math.max(0, Math.min(6, maxIdx + dDay)); }
+          else if (isDragging && drag.mode === 'extend-right') maxIdx = Math.max(minIdx, Math.min(6, maxIdx + dDay));
+          else if (isDragging && drag.mode === 'extend-left') minIdx = Math.min(maxIdx, Math.max(0, minIdx + dDay));
+          const nDays = maxIdx - minIdx + 1;
+          // Pendant le glisser, le bloc reste hébergé dans sa colonne d'origine : le déplacement
+          // visuel se fait par translation (largeur de colonne mesurée au début du geste).
+          const shiftPx = (minIdx - span.minIdx) * ((drag && drag.colWidth) || colWidth);
+          return (
+            <div key={span.spanKey}
+              onMouseDown={startBlockDrag(span, 'move-days')}
+              onTouchStart={startBlockDrag(span, 'move-days')}
+              onClick={(e) => { e.stopPropagation(); if (didDragRef.current) { didDragRef.current = false; return; } onEventClick(rep); }}
+              title={span.entries.length > 1 ? `Indisponible du ${fmtDateShort(span.entries[0].date)} au ${fmtDateShort(span.entries[span.entries.length - 1].date)} — glisser pour déplacer, bords pour ajuster les jours, haut/bas pour l'horaire` : `Indisponible le ${fmtDateShort(span.entries[0].date)} — glisser pour déplacer (jour + horaire), bords pour l'étendre sur plusieurs jours`}
+              style={{ position: 'absolute', top: sTop, height: sHeight, left: 4, width: `calc(${nDays * 100}% - 8px)`, transform: shiftPx ? `translateX(${shiftPx}px)` : undefined, background: C.snowDim, borderLeft: `3px solid ${C.inkSoft}`, borderRadius: 6, padding: '4px 7px', boxShadow: '0 2px 8px -3px rgba(0,0,0,0.25)', cursor: 'grab', overflow: 'hidden', zIndex: isDragging ? 6 : 2, touchAction: 'none' }}>
+              <div onMouseDown={startBlockDrag(span, 'resize-top')} onTouchStart={startBlockDrag(span, 'resize-top')} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: C.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{span.entries.length > 1 ? `Indisponible (${span.entries.length} jours)` : 'Indisponible'}</div>
+              <div style={{ fontSize: 10.5, color: C.inkSoft }}>{fmtHeure(minutesToTime(startM + DAY_START * 60), langue)}–{fmtHeure(minutesToTime(endM + DAY_START * 60), langue)}</div>
+              <div onMouseDown={startBlockDrag(span, 'resize-bottom')} onTouchStart={startBlockDrag(span, 'resize-bottom')} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />
+              <div onMouseDown={startBlockDrag(span, 'extend-left')} onTouchStart={startBlockDrag(span, 'extend-left')} title="Glisser pour ajuster le début de la période" style={{ position: 'absolute', top: 10, bottom: 10, left: -5, width: 18, cursor: 'col-resize', zIndex: 3, touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 3, height: '60%', minHeight: 12, borderRadius: 2, background: C.inkSoft, opacity: 0.5 }} />
+              </div>
+              <div onMouseDown={startBlockDrag(span, 'extend-right')} onTouchStart={startBlockDrag(span, 'extend-right')} title="Glisser pour ajuster la fin de la période" style={{ position: 'absolute', top: 10, bottom: 10, right: -5, width: 18, cursor: 'col-resize', zIndex: 3, touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 3, height: '60%', minHeight: 12, borderRadius: 2, background: C.inkSoft, opacity: 0.5 }} />
+              </div>
             </div>
           );
         })}
@@ -1596,47 +1638,6 @@ function CalendarView({ reservations, onSlotClick, onEventClick, onAbsenceUpdate
             <div style={{ display: 'flex', position: 'relative' }} ref={gridRef}>
               <div style={{ width: 52, flexShrink: 0, position: 'sticky', left: 0, zIndex: 20, background: C.card, pointerEvents: 'none' }}>{hours.map(h => <div key={h} style={{ height: ROW_HEIGHT, fontSize: 11, color: C.inkSoft, textAlign: 'right', paddingRight: 8, position: 'relative', top: -6 }}>{fmtHeure(`${pad(h)}:00`, langue)}</div>)}</div>
               {(view === 'week' ? weekDays : [anchor]).map(renderDayColumn)}
-              {view === 'week' && blockSpans.map(span => {
-                const isDragging = drag && drag.kind === 'block' && drag.span.spanKey === span.spanKey;
-                const dMin = isDragging ? (drag.deltaMin || 0) : 0;
-                const dDay = isDragging ? (drag.dayDelta || 0) : 0;
-                const rep = span.entries[0];
-                let startM = timeToMinutes(rep.heureDebut) - DAY_START * 60, endM = timeToMinutes(rep.heureFin) - DAY_START * 60;
-                if (isDragging && drag.mode === 'move-days') { startM += dMin; endM += dMin; }
-                else if (isDragging && drag.mode === 'resize-bottom') endM = Math.max(startM + 30, endM + dMin);
-                else if (isDragging && drag.mode === 'resize-top') startM = Math.min(endM - 30, startM + dMin);
-                const top = (startM / 60) * ROW_HEIGHT, height = Math.max(((endM - startM) / 60) * ROW_HEIGHT, 24);
-                let minIdx = span.minIdx, maxIdx = span.maxIdx;
-                if (isDragging && drag.mode === 'move-days') { minIdx = Math.max(0, Math.min(6, minIdx + dDay)); maxIdx = Math.max(0, Math.min(6, maxIdx + dDay)); }
-                else if (isDragging && drag.mode === 'extend-right') maxIdx = Math.max(minIdx, Math.min(6, maxIdx + dDay));
-                else if (isDragging && drag.mode === 'extend-left') minIdx = Math.min(maxIdx, Math.max(0, minIdx + dDay));
-                // Positionnement en pourcentages CSS (calc) plutôt qu'en pixels mesurés en JS :
-                // la mesure JS peut être décalée sur mobile (scroll horizontal, rendu différé),
-                // ce qui faisait chevaucher le bloc sur les colonnes voisines. calc() colle
-                // toujours exactement à la largeur réelle des colonnes.
-                const nDays = maxIdx - minIdx + 1;
-                const left = `calc(52px + ${minIdx} * ((100% - 52px) / 7) + 4px)`;
-                const width = `calc(${nDays} * ((100% - 52px) / 7) - 8px)`;
-                return (
-                  <div key={span.spanKey}
-                    onMouseDown={startBlockDrag(span, 'move-days')}
-                    onTouchStart={startBlockDrag(span, 'move-days')}
-                    onClick={(e) => { e.stopPropagation(); if (didDragRef.current) { didDragRef.current = false; return; } onEventClick(rep); }}
-                    title={span.entries.length > 1 ? `Indisponible du ${fmtDateShort(span.entries[0].date)} au ${fmtDateShort(span.entries[span.entries.length - 1].date)} — glisser pour déplacer, bords pour ajuster les jours, haut/bas pour l'horaire` : `Indisponible le ${fmtDateShort(span.entries[0].date)} — glisser pour déplacer (jour + horaire), bords pour l'étendre sur plusieurs jours`}
-                    style={{ position: 'absolute', top, height, left, width, background: C.snowDim, borderLeft: `3px solid ${C.inkSoft}`, borderRadius: 6, padding: '4px 7px', boxShadow: '0 2px 8px -3px rgba(0,0,0,0.25)', cursor: 'grab', overflow: 'hidden', zIndex: isDragging ? 6 : 2, touchAction: 'none' }}>
-                    <div onMouseDown={startBlockDrag(span, 'resize-top')} onTouchStart={startBlockDrag(span, 'resize-top')} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />
-                    <div style={{ fontSize: 11.5, fontWeight: 700, color: C.inkSoft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{span.entries.length > 1 ? `Indisponible (${span.entries.length} jours)` : 'Indisponible'}</div>
-                    <div style={{ fontSize: 10.5, color: C.inkSoft }}>{fmtHeure(minutesToTime(startM + DAY_START * 60), langue)}–{fmtHeure(minutesToTime(endM + DAY_START * 60), langue)}</div>
-                    <div onMouseDown={startBlockDrag(span, 'resize-bottom')} onTouchStart={startBlockDrag(span, 'resize-bottom')} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 10, cursor: 'ns-resize' }} />
-                    <div onMouseDown={startBlockDrag(span, 'extend-left')} onTouchStart={startBlockDrag(span, 'extend-left')} title="Glisser pour ajuster le début de la période" style={{ position: 'absolute', top: 10, bottom: 10, left: -5, width: 18, cursor: 'col-resize', zIndex: 3, touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div style={{ width: 3, height: '60%', minHeight: 12, borderRadius: 2, background: C.inkSoft, opacity: 0.5 }} />
-                    </div>
-                    <div onMouseDown={startBlockDrag(span, 'extend-right')} onTouchStart={startBlockDrag(span, 'extend-right')} title="Glisser pour ajuster la fin de la période" style={{ position: 'absolute', top: 10, bottom: 10, right: -5, width: 18, cursor: 'col-resize', zIndex: 3, touchAction: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <div style={{ width: 3, height: '60%', minHeight: 12, borderRadius: 2, background: C.inkSoft, opacity: 0.5 }} />
-                    </div>
-                  </div>
-                );
-              })}
             </div>
           </div>
         </div>
