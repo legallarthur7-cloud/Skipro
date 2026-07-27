@@ -116,7 +116,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const { slug, cours, action, groupId: declaredGroupId } = req.body;
+      const { slug, cours, action, groupId: declaredGroupId, kind } = req.body;
 
       // Le client signale qu'il a effectué son virement : on passe le statut de paiement de tous
       // les cours du lot en "Virement annoncé". C'est purement déclaratif — le moniteur devra
@@ -148,33 +148,43 @@ export default async function handler(req, res) {
           // vérifie l'arrivée des fonds sur son compte avant de passer la réservation en "Payé".
           const lot = updated.filter(r => String(r.groupId) === String(declaredGroupId));
           const c0 = lot[0] || {};
-          const montant = lot.reduce((s, r) => s + (Number(r.prix) || 0), 0);
+          const total = lot.reduce((s, r) => s + (Number(r.prix) || 0), 0);
           const lignes = lot.map(r => `<li>${r.date} — ${r.heureDebut}–${r.heureFin}${r.discipline ? ' · ' + r.discipline : ''}</li>`).join('');
           const ref = `SKIPRO-${declaredGroupId}`;
 
           const settingsRaw2 = await getRow(uid, SETTINGS_KEY);
           const set2 = settingsRaw2 ? JSON.parse(settingsRaw2) : {};
 
+          // Un règlement en espèces ne donne lieu qu'au versement d'un acompte : les e-mails
+          // doivent annoncer ce montant-là, et non le total du cours.
+          const isDeposit = kind === 'deposit';
+          const pct = set2.acomptePct === undefined || set2.acomptePct === '' ? 30 : Number(set2.acomptePct);
+          const montant = isDeposit ? Math.ceil(total * pct / 100) : total;
+          const reste = total - montant;
+          const libelle = isDeposit ? `acompte de ${montant} € (${pct} % de ${total} €)` : `virement de ${montant} €`;
+
           if (c0.email) {
             await sendMail({
               to: c0.email,
-              subject: `Virement bien noté — réservation ${ref}`,
-              html: mailShell('Merci, ton virement a été signalé', `
+              subject: isDeposit ? `Acompte bien noté — réservation ${ref}` : `Virement bien noté — réservation ${ref}`,
+              html: mailShell(isDeposit ? 'Merci, ton acompte a été signalé' : 'Merci, ton virement a été signalé', `
                 <p>Bonjour ${c0.prenom || ''},</p>
-                <p>Nous avons bien enregistré que tu as effectué le virement de <strong>${montant} €</strong> (référence <strong>${ref}</strong>) pour :</p>
+                <p>Nous avons bien enregistré ton ${libelle} (référence <strong>${ref}</strong>) pour :</p>
                 <ul>${lignes}</ul>
+                ${isDeposit ? `<p>Le solde de <strong>${reste} €</strong> sera à régler en espèces le jour du cours.</p>` : ''}
                 <p>${set2.nom || 'Ton moniteur'} confirmera la réception des fonds sur son compte. Tu n'as rien d'autre à faire.</p>`)
             });
           }
           if (set2.email) {
             await sendMail({
               to: set2.email,
-              subject: `Virement annoncé — ${c0.prenom || ''} ${c0.nom || ''} (${montant} €)`,
-              html: mailShell('Un client a signalé son virement', `
-                <p><strong>${c0.prenom || ''} ${c0.nom || ''}</strong>${c0.telephone ? ' · ' + c0.telephone : ''} indique avoir effectué un virement de <strong>${montant} €</strong>.</p>
+              subject: `${isDeposit ? 'Acompte' : 'Virement'} annoncé — ${c0.prenom || ''} ${c0.nom || ''} (${montant} €)`,
+              html: mailShell(`Un client a signalé son ${isDeposit ? 'acompte' : 'virement'}`, `
+                <p><strong>${c0.prenom || ''} ${c0.nom || ''}</strong>${c0.telephone ? ' · ' + c0.telephone : ''} indique avoir versé un ${libelle}.</p>
+                ${isDeposit ? `<p>Solde à encaisser en espèces le jour du cours : <strong>${reste} €</strong></p>` : ''}
                 <p>Référence à retrouver sur ton relevé : <strong>${ref}</strong></p>
                 <ul>${lignes}</ul>
-                <p style="color:#5a6b7a">Vérifie ton compte bancaire, puis passe la réservation en « Payé » dans SkiPro.</p>
+                <p style="color:#5a6b7a">Vérifie ton compte bancaire, puis passe la réservation en « ${isDeposit ? 'Acompte reçu' : 'Payé'} » dans SkiPro.</p>
                 <p style="margin-top:20px"><a href="https://www.skipro-app.com" style="background:#2f7fb8;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Ouvrir SkiPro</a></p>`)
             });
           }

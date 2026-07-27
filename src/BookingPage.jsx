@@ -465,11 +465,13 @@ function SepaQrCode({ payload, size = 190 }) {
 
 // Le client déclare avoir effectué son virement : la réservation passe en "Virement annoncé"
 // côté moniteur, qui vérifiera son compte avant de la basculer en "Payé".
-async function declareTransfer(slug, groupId) {
+// kind : 'full' (virement du montant total) ou 'deposit' (acompte seul, cas d'un règlement
+// en espèces le jour du cours) — le serveur adapte le montant annoncé dans les e-mails.
+async function declareTransfer(slug, groupId, kind = 'full') {
   const res = await fetch('/api/public-booking', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ slug, groupId, action: 'declare-transfer' })
+    body: JSON.stringify({ slug, groupId, kind, action: 'declare-transfer' })
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
@@ -768,7 +770,7 @@ export default function BookingPage({ slug }) {
                     <button type="button" disabled={transferState === 'sending' || !sentGroupId}
                       onClick={async () => {
                         setTransferState('sending');
-                        try { await declareTransfer(slug, sentGroupId); setTransferState('done'); }
+                        try { await declareTransfer(slug, sentGroupId, 'deposit'); setTransferState('done'); }
                         catch (_) { setTransferState('idle'); }
                       }}
                       style={{ marginTop: 12, width: '100%', background: COLORS.green, color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 13.5, fontWeight: 600, cursor: transferState === 'sending' ? 'default' : 'pointer', opacity: transferState === 'sending' ? 0.6 : 1 }}>
