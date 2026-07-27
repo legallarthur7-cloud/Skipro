@@ -85,7 +85,8 @@ export default async function handler(req, res) {
         // virement, pour qu'il puisse effectuer le transfert directement vers le moniteur.
         iban: settings.iban || '',
         bic: settings.bic || '',
-        banque: settings.banque || ''
+        banque: settings.banque || '',
+        lienPaiement: settings.lienPaiement || ''
       };
 
       return res.status(200).json({ userId, settings: publicSettings, busySlots });

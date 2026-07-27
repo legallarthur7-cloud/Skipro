@@ -42,7 +42,7 @@ const NIVEAUX = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
 const ENGAGEMENTS = ['Heure', 'Demi-journée', 'Journée'];
 // Purement informatif : le client indique juste sa préférence, aucun paiement n'est traité en
 // ligne (voir paymentNote). Mêmes valeurs que côté moniteur (MODES_PAIEMENT dans App.jsx).
-const MODES_PAIEMENT = ['Non renseigné', 'Espèces', 'Carte bancaire', 'Virement'];
+const MODES_PAIEMENT = ['Non renseigné', 'Espèces', 'Virement'];
 const CRENEAUX_KEYS = ['Matin', 'Après-midi'];
 const LANGUES_CANON = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
 
@@ -170,7 +170,9 @@ const T = {
     transferDone: "J'ai effectué le virement",
     transferSending: 'Envoi…',
     transferThanks: 'Merci ! Le moniteur a été informé et validera dès réception sur son compte.',
-    copied: 'Copié'
+    copied: 'Copié',
+    payNow: 'Payer maintenant',
+    qrHint: "Scanne ce QR code avec ton application bancaire : le virement sera pré-rempli."
   },
   en: {
     title: 'Book a lesson', subtitle: (nom) => `Fill in this form and ${nom} will confirm your booking shortly.`,
@@ -208,7 +210,9 @@ const T = {
     transferDone: 'I have made the transfer',
     transferSending: 'Sending…',
     transferThanks: 'Thank you! The instructor has been notified and will confirm once received.',
-    copied: 'Copied'
+    copied: 'Copied',
+    payNow: 'Pay now',
+    qrHint: 'Scan this QR code with your banking app: the transfer will be pre-filled.'
   },
   es: {
     title: 'Reservar una clase', subtitle: (nom) => `Rellena este formulario y ${nom} confirmará tu reserva enseguida.`,
@@ -246,7 +250,9 @@ const T = {
     transferDone: 'He hecho la transferencia',
     transferSending: 'Enviando…',
     transferThanks: '¡Gracias! El monitor ha sido informado y lo validará al recibirlo.',
-    copied: 'Copiado'
+    copied: 'Copiado',
+    payNow: 'Pagar ahora',
+    qrHint: 'Escanea este código QR con tu app bancaria: la transferencia se rellenará sola.'
   },
   de: {
     title: 'Skikurs buchen', subtitle: (nom) => `Fülle dieses Formular aus, ${nom} bestätigt deine Buchung in Kürze.`,
@@ -284,7 +290,9 @@ const T = {
     transferDone: 'Ich habe überwiesen',
     transferSending: 'Senden…',
     transferThanks: 'Danke! Der Lehrer wurde informiert und bestätigt nach Zahlungseingang.',
-    copied: 'Kopiert'
+    copied: 'Kopiert',
+    payNow: 'Jetzt bezahlen',
+    qrHint: 'Scanne diesen QR-Code mit deiner Banking-App: die Überweisung wird vorausgefüllt.'
   },
   it: {
     title: 'Prenota una lezione', subtitle: (nom) => `Compila questo modulo, ${nom} confermerà la tua prenotazione a breve.`,
@@ -322,7 +330,9 @@ const T = {
     transferDone: 'Ho effettuato il bonifico',
     transferSending: 'Invio…',
     transferThanks: 'Grazie! Il maestro è stato informato e confermerà alla ricezione.',
-    copied: 'Copiato'
+    copied: 'Copiato',
+    payNow: 'Paga ora',
+    qrHint: 'Scansiona questo codice QR con la tua app bancaria: il bonifico sarà precompilato.'
   },
   pt: {
     title: 'Reservar uma aula', subtitle: (nom) => `Preenche este formulário e ${nom} confirmará a tua reserva em breve.`,
@@ -360,7 +370,9 @@ const T = {
     transferDone: 'Fiz a transferência',
     transferSending: 'A enviar…',
     transferThanks: 'Obrigado! O monitor foi informado e irá validar após a receção.',
-    copied: 'Copiado'
+    copied: 'Copiado',
+    payNow: 'Pagar agora',
+    qrHint: 'Digitaliza este código QR com a tua app bancária: a transferência será preenchida.'
   }
 };
 
@@ -380,6 +392,45 @@ async function postPublicBooking(slug, cours) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
   return data; // { ok, groupId, ids }
+}
+
+/* ==================================================================================
+   QR CODE DE VIREMENT SEPA (norme EPC069-12)
+   Scanné avec l'application bancaire du client, il pré-remplit le virement (bénéficiaire,
+   IBAN, montant, référence) : plus aucune saisie manuelle. Uniquement valable en euros.
+   ================================================================================== */
+function buildSepaPayload({ nom, iban, bic, montant, reference }) {
+  const cleanIban = String(iban || '').replace(/\s+/g, '').toUpperCase();
+  if (!cleanIban) return null;
+  return [
+    'BCD',                                        // service tag
+    '002',                                        // version (002 : BIC facultatif)
+    '1',                                          // encodage UTF-8
+    'SCT',                                        // virement SEPA
+    String(bic || '').replace(/\s+/g, '').toUpperCase(),
+    String(nom || '').slice(0, 70),
+    cleanIban,
+    `EUR${Number(montant || 0).toFixed(2)}`,
+    '',                                           // code motif (non utilisé)
+    '',                                           // référence structurée (non utilisée)
+    String(reference || '').slice(0, 140)         // communication libre
+  ].join('\n');
+}
+
+function SepaQrCode({ payload, size = 190 }) {
+  const [src, setSrc] = useState('');
+  useEffect(() => {
+    let annule = false;
+    if (!payload) { setSrc(''); return; }
+    // Import différé : la bibliothèque n'est téléchargée que si un QR doit réellement s'afficher.
+    import('qrcode')
+      .then(mod => (mod.default || mod).toDataURL(payload, { width: size * 2, margin: 1, errorCorrectionLevel: 'M' }))
+      .then(url => { if (!annule) setSrc(url); })
+      .catch(() => { if (!annule) setSrc(''); });
+    return () => { annule = true; };
+  }, [payload, size]);
+  if (!src) return null;
+  return <img src={src} alt="QR code de virement SEPA" width={size} height={size} style={{ display: 'block', margin: '0 auto', borderRadius: 8 }} />;
 }
 
 // Le client déclare avoir effectué son virement : la réservation passe en "Virement annoncé"
@@ -658,9 +709,24 @@ export default function BookingPage({ slug }) {
             {form.modePaiement === 'Virement' && (
               <div style={{ marginTop: 22, textAlign: 'left', background: COLORS.snow, border: `1px solid ${COLORS.iceLine}`, borderRadius: 12, padding: 16 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.navy, marginBottom: 8 }}>{t.transferTitle}</div>
+                {/* Paiement immédiat via le lien perso du moniteur (Revolut, PayPal, Lydia…) :
+                    proposé en premier car c'est le chemin le plus rapide pour le client. */}
+                {settings.lienPaiement && (
+                  <a href={settings.lienPaiement} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'block', textAlign: 'center', background: COLORS.glacier, color: '#fff', borderRadius: 9, padding: '11px', fontSize: 13.5, fontWeight: 600, textDecoration: 'none', marginBottom: 14 }}>
+                    {t.payNow}
+                  </a>
+                )}
                 {settings.iban ? (
                   <>
                     <p style={{ fontSize: 13, color: COLORS.inkSoft, lineHeight: 1.6, marginBottom: 12 }}>{t.transferIntro(settings.nom)}</p>
+                    {/* QR code SEPA : le client scanne avec son app bancaire, tout est pré-rempli. */}
+                    {(!settings.devise || settings.devise === 'EUR') && (
+                      <div style={{ background: '#fff', border: `1px solid ${COLORS.iceLine}`, borderRadius: 10, padding: 12, marginBottom: 12 }}>
+                        <SepaQrCode payload={buildSepaPayload({ nom: settings.nom, iban: settings.iban, bic: settings.bic, montant: sentTotal, reference: `SKIPRO-${sentGroupId || ''}` })} />
+                        <p style={{ fontSize: 11.5, color: COLORS.inkSoft, textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>{t.qrHint}</p>
+                      </div>
+                    )}
                     {[
                       ['IBAN', settings.iban],
                       ...(settings.bic ? [['BIC', settings.bic]] : []),

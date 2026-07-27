@@ -66,7 +66,10 @@ const NIVEAUX = ['Débutant', 'Intermédiaire', 'Avancé', 'Expert'];
 const DISCIPLINES = ['Ski', 'Snowboard'];
 const STATUTS = ['Confirmée', 'En attente', 'Annulée'];
 const PAIEMENT_STATUTS = ['Non payé', 'Virement annoncé', 'Acompte reçu', 'Payé'];
-const MODES_PAIEMENT = ['Non renseigné', 'Espèces', 'Carte bancaire', 'Virement'];
+// Seuls les modes réellement praticables pour un moniteur indépendant sont proposés :
+// espèces sur place, ou virement (IBAN / QR code SEPA / lien de paiement sur la page publique).
+// "Carte bancaire" a été retiré : aucun encaissement par carte n'est prévu par l'application.
+const MODES_PAIEMENT = ['Non renseigné', 'Espèces', 'Virement'];
 const LANGUES = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const ENGAGEMENTS = ['Heure', 'Demi-journée', 'Journée'];
@@ -625,7 +628,7 @@ const DEFAULT_SETTINGS = {
   nom: 'Moniteur ESF', email: 'contact@exemple.com', devise: 'EUR', langue: 'Français',
   fuseauHoraire: 'Europe/Paris',
   adresse: '', telephone: '', siret: '', profession: 'Moniteur de ski indépendant',
-  iban: '', bic: '', banque: '', slug: '',
+  iban: '', bic: '', banque: '', lienPaiement: '', slug: '',
   matinDebut: '09:00', matinFin: '12:30', apresMidiDebut: '13:30', apresMidiFin: '17:00',
   tarifSkiHaute: 75, tarifSkiBasse: 55, tarifSnowboardHaute: 80, tarifSnowboardBasse: 60,
   tarifDemiJourneeHaute: 210, tarifDemiJourneeBasse: 150, tarifJourneeHaute: 370, tarifJourneeBasse: 270,
@@ -2180,6 +2183,15 @@ function ParametresView({ settings, onSave, C, subscribed }) {
         </div>
         <div style={{ marginTop: 14 }}>
           {field(tUI('labelNomBanque', langue), <input style={inputStyle} value={form.banque || ''} onChange={set('banque')} placeholder="Ex: Caisse d'Épargne Rhône Alpes" />)}
+        </div>
+        {/* Lien de paiement personnel (Revolut, PayPal, Lydia…) : affiché au client sur la page de
+            réservation pour un règlement en deux clics. L'argent va directement au moniteur —
+            SkiPro ne traite aucun paiement de cours. */}
+        <div style={{ marginTop: 14 }}>
+          {field('Lien de paiement (optionnel)', <input style={inputStyle} value={form.lienPaiement || ''} onChange={set('lienPaiement')} placeholder="https://revolut.me/... ou https://paypal.me/..." />)}
+          <div style={{ fontSize: 11.5, color: C.inkSoft, marginTop: 6, lineHeight: 1.5 }}>
+            Ton lien Revolut, PayPal ou Lydia. Il s'affichera à tes clients à la fin de leur réservation, à côté de tes coordonnées bancaires, pour qu'ils puissent payer immédiatement.
+          </div>
         </div>
         </>
       ))}
