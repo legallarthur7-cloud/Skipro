@@ -46,6 +46,64 @@ const MODES_PAIEMENT = ['Non renseigné', 'Espèces', 'Virement'];
 const CRENEAUX_KEYS = ['Matin', 'Après-midi'];
 const LANGUES_CANON = ['Français', 'Anglais', 'Allemand', 'Espagnol', 'Italien', 'Portugais', 'Russe'];
 
+// Indicatifs téléphoniques internationaux : la clientèle des moniteurs est majoritairement
+// étrangère, un numéro sans indicatif est souvent inutilisable. France en tête, puis les pays
+// d'où viennent le plus de skieurs, puis le reste par ordre alphabétique.
+const INDICATIFS = [
+  { dial: '+33', nom: 'France', drapeau: '🇫🇷' },
+  { dial: '+32', nom: 'Belgique', drapeau: '🇧🇪' },
+  { dial: '+41', nom: 'Suisse', drapeau: '🇨🇭' },
+  { dial: '+39', nom: 'Italie', drapeau: '🇮🇹' },
+  { dial: '+49', nom: 'Allemagne', drapeau: '🇩🇪' },
+  { dial: '+44', nom: 'Royaume-Uni', drapeau: '🇬🇧' },
+  { dial: '+34', nom: 'Espagne', drapeau: '🇪🇸' },
+  { dial: '+31', nom: 'Pays-Bas', drapeau: '🇳🇱' },
+  { dial: '+1', nom: 'États-Unis / Canada', drapeau: '🇺🇸' },
+  { dial: '+43', nom: 'Autriche', drapeau: '🇦🇹' },
+  { dial: '+27', nom: 'Afrique du Sud', drapeau: '🇿🇦' },
+  { dial: '+213', nom: 'Algérie', drapeau: '🇩🇿' },
+  { dial: '+54', nom: 'Argentine', drapeau: '🇦🇷' },
+  { dial: '+61', nom: 'Australie', drapeau: '🇦🇺' },
+  { dial: '+55', nom: 'Brésil', drapeau: '🇧🇷' },
+  { dial: '+359', nom: 'Bulgarie', drapeau: '🇧🇬' },
+  { dial: '+56', nom: 'Chili', drapeau: '🇨🇱' },
+  { dial: '+86', nom: 'Chine', drapeau: '🇨🇳' },
+  { dial: '+82', nom: 'Corée du Sud', drapeau: '🇰🇷' },
+  { dial: '+385', nom: 'Croatie', drapeau: '🇭🇷' },
+  { dial: '+45', nom: 'Danemark', drapeau: '🇩🇰' },
+  { dial: '+971', nom: 'Émirats arabes unis', drapeau: '🇦🇪' },
+  { dial: '+372', nom: 'Estonie', drapeau: '🇪🇪' },
+  { dial: '+358', nom: 'Finlande', drapeau: '🇫🇮' },
+  { dial: '+30', nom: 'Grèce', drapeau: '🇬🇷' },
+  { dial: '+36', nom: 'Hongrie', drapeau: '🇭🇺' },
+  { dial: '+91', nom: 'Inde', drapeau: '🇮🇳' },
+  { dial: '+353', nom: 'Irlande', drapeau: '🇮🇪' },
+  { dial: '+354', nom: 'Islande', drapeau: '🇮🇸' },
+  { dial: '+972', nom: 'Israël', drapeau: '🇮🇱' },
+  { dial: '+81', nom: 'Japon', drapeau: '🇯🇵' },
+  { dial: '+371', nom: 'Lettonie', drapeau: '🇱🇻' },
+  { dial: '+370', nom: 'Lituanie', drapeau: '🇱🇹' },
+  { dial: '+352', nom: 'Luxembourg', drapeau: '🇱🇺' },
+  { dial: '+212', nom: 'Maroc', drapeau: '🇲🇦' },
+  { dial: '+52', nom: 'Mexique', drapeau: '🇲🇽' },
+  { dial: '+47', nom: 'Norvège', drapeau: '🇳🇴' },
+  { dial: '+64', nom: 'Nouvelle-Zélande', drapeau: '🇳🇿' },
+  { dial: '+48', nom: 'Pologne', drapeau: '🇵🇱' },
+  { dial: '+351', nom: 'Portugal', drapeau: '🇵🇹' },
+  { dial: '+420', nom: 'République tchèque', drapeau: '🇨🇿' },
+  { dial: '+40', nom: 'Roumanie', drapeau: '🇷🇴' },
+  { dial: '+7', nom: 'Russie / Kazakhstan', drapeau: '🇷🇺' },
+  { dial: '+381', nom: 'Serbie', drapeau: '🇷🇸' },
+  { dial: '+65', nom: 'Singapour', drapeau: '🇸🇬' },
+  { dial: '+421', nom: 'Slovaquie', drapeau: '🇸🇰' },
+  { dial: '+386', nom: 'Slovénie', drapeau: '🇸🇮' },
+  { dial: '+46', nom: 'Suède', drapeau: '🇸🇪' },
+  { dial: '+66', nom: 'Thaïlande', drapeau: '🇹🇭' },
+  { dial: '+216', nom: 'Tunisie', drapeau: '🇹🇳' },
+  { dial: '+90', nom: 'Turquie', drapeau: '🇹🇷' },
+  { dial: '+380', nom: 'Ukraine', drapeau: '🇺🇦' }
+];
+
 // Créneaux demi-journée : dépendent des horaires personnalisés du moniteur (Paramètres > Horaires),
 // avec repli sur les valeurs par défaut si non renseignés.
 function getCreneaux(settings) {
@@ -489,7 +547,7 @@ function computePrix(cours, settings) {
 }
 
 const emptyForm = {
-  prenom: '', nom: '', telephone: '', email: '', nationalite: '', langue: 'Français', age: '',
+  prenom: '', nom: '', indicatif: '+33', telephone: '', email: '', nationalite: '', langue: 'Français', age: '',
   nbPersonnes: 1, station: STATIONS[0], modePaiement: 'Non renseigné', message: ''
 };
 
@@ -666,7 +724,9 @@ export default function BookingPage({ slug }) {
     setError(''); setLoading(true);
     const notes = form.message ? `Demande en ligne (${uiLang.toUpperCase()}) : ${form.message}` : `Demande envoyée via le formulaire en ligne (langue : ${uiLang.toUpperCase()}).`;
     const coursPayload = finalCoursList.map(c => ({
-      nom: form.nom, prenom: form.prenom, telephone: form.telephone, email: form.email,
+      // Le numéro est enregistré au format international (indicatif + numéro), directement
+      // cliquable et utilisable pour un client étranger.
+      nom: form.nom, prenom: form.prenom, telephone: `${form.indicatif || '+33'} ${String(form.telephone).replace(/^0+/, '').trim()}`, email: form.email,
       nationalite: form.nationalite, langue: form.langue, age: Number(form.age) || '',
       niveau: c.niveau, discipline: c.discipline, nbPersonnes: Number(form.nbPersonnes) || 1, station: form.station,
       pointRdv: '', date: c.date, type: c.type, creneau: c.creneau, heureDebut: c.heureDebut, heureFin: c.heureFin,
@@ -864,7 +924,14 @@ export default function BookingPage({ slug }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12 }}>
               {field(t.prenom, <input style={inputStyle} value={form.prenom} onChange={set('prenom')} />)}
               {field(t.nom, <input style={inputStyle} value={form.nom} onChange={set('nom')} />)}
-              {field(t.telephone, <input style={inputStyle} value={form.telephone} onChange={set('telephone')} />)}
+              {field(t.telephone, (
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <select style={{ ...inputStyle, width: 'auto', flexShrink: 0, paddingRight: 4 }} value={form.indicatif || '+33'} onChange={set('indicatif')}>
+                    {INDICATIFS.map(i => <option key={i.dial + i.nom} value={i.dial}>{i.drapeau} {i.dial}</option>)}
+                  </select>
+                  <input type="tel" style={inputStyle} value={form.telephone} onChange={set('telephone')} placeholder="6 12 34 56 78" />
+                </div>
+              ))}
               {field(t.email, <input style={inputStyle} value={form.email} onChange={set('email')} />)}
               {field(t.nationalite, <input style={inputStyle} value={form.nationalite} onChange={set('nationalite')} />)}
               {field(t.langue, <select style={inputStyle} value={form.langue} onChange={set('langue')}>{LANGUES_CANON.map(l => <option key={l} value={l}>{t.langues[l]}</option>)}</select>)}
