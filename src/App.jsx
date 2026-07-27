@@ -2555,6 +2555,11 @@ export default function App() {
             <button onClick={() => { setAuthed(false); setMobileMenuOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: 14.5, background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>
               <LogOut size={17} /> {tUI('deconnexion', settings.langue)}
             </button>
+            {/* Contact support : ouvre le client mail vers l'adresse pro SkiPro. */}
+            <a href="mailto:contact@skipro-app.com" style={{ display: 'block', padding: '8px 12px 2px', fontSize: 10.5, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', lineHeight: 1.5 }}>
+              Nous contacter<br />
+              <span style={{ color: 'rgba(255,255,255,0.5)' }}>contact@skipro-app.com</span>
+            </a>
           </div>
         </div>
       )}
@@ -2580,6 +2585,11 @@ export default function App() {
         <button className="nav-btn" onClick={() => supabase.auth.signOut()} style={{ borderRadius: 9, border: 'none', cursor: 'pointer', textAlign: 'left', background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>
           <LogOut size={16} /> {tUI('deconnexion', settings.langue)}
         </button>
+        {/* Contact support : ouvre le client mail vers l'adresse pro SkiPro. */}
+        <a href="mailto:contact@skipro-app.com" style={{ display: 'block', padding: '8px 12px 2px', fontSize: 10.5, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', lineHeight: 1.5 }}>
+          Nous contacter<br />
+          <span style={{ color: 'rgba(255,255,255,0.5)' }}>contact@skipro-app.com</span>
+        </a>
       </aside>
 
       <main className="main-content">
