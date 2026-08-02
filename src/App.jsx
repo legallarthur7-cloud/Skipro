@@ -816,6 +816,25 @@ const RESPONSIVE_CSS = `
     .kpi-grid-4, .kpi-grid-3, .clients-grid{ grid-template-columns:1fr; }
     .form-grid-2, .form-grid-3{ grid-template-columns:1fr; }
   }
+
+  /* ---- Impression : seule la facture doit sortir sur le papier ----
+     window.print() imprime par défaut toute la page (menu, tableaux, boutons…).
+     On masque donc tout, on ne rend visible que la carte de facture, et on la
+     repositionne en haut de la feuille. */
+  @media print {
+    @page { size: A4; margin: 14mm; }
+    body * { visibility: hidden !important; }
+    .invoice-print, .invoice-print * { visibility: visible !important; }
+    .invoice-print {
+      position: absolute !important;
+      left: 0 !important; top: 0 !important;
+      width: 100% !important; max-width: none !important;
+      margin: 0 !important; padding: 0 !important;
+      border-radius: 0 !important; box-shadow: none !important;
+      background: #fff !important;
+    }
+    .no-print { display: none !important; }
+  }
 `;
 
 /* ==================================================================================
@@ -1916,7 +1935,7 @@ function InvoiceModal({ reservation, onClose, C, devise, settings }) {
   const hasBank = settings.iban || settings.bic || settings.banque;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,18,27,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 20 }} onClick={onClose}>
-      <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 560, padding: 32 }} onClick={e => e.stopPropagation()}>
+      <div className="invoice-print" style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 560, padding: 32 }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 }}>
           <div style={{ fontSize: 13, lineHeight: 1.6, color: '#16232F' }}>
             <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: 16 }}>{settings.nom}{settings.profession ? `. ${settings.profession}` : ''}</div>
@@ -1956,8 +1975,8 @@ function InvoiceModal({ reservation, onClose, C, devise, settings }) {
           </div>
         )}
 
-        <button onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#10233D', color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 26 }}><Printer size={15} /> Imprimer / Enregistrer en PDF</button>
-        <button onClick={onClose} style={{ display: 'block', margin: '10px auto 0', background: 'none', border: 'none', cursor: 'pointer', color: '#5A6B7A', fontSize: 13 }}>Fermer</button>
+        <button className="no-print" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', background: '#10233D', color: '#fff', border: 'none', borderRadius: 9, padding: '11px', fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 26 }}><Printer size={15} /> Imprimer / Enregistrer en PDF</button>
+        <button className="no-print" onClick={onClose} style={{ display: 'block', margin: '10px auto 0', background: 'none', border: 'none', cursor: 'pointer', color: '#5A6B7A', fontSize: 13 }}>Fermer</button>
       </div>
     </div>
   );
